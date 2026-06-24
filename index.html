@@ -410,7 +410,10 @@
       object-fit: cover;
       display: block;
       background: #1f1f1f;
+      opacity: 0;
+      transition: opacity 0.4s ease, transform 0.5s ease;
     }
+    .card-poster.loaded { opacity: 1; }
 
     .card-poster-placeholder {
       width: 100%;
@@ -460,6 +463,42 @@
     .badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; }
     .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
     .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+    /* Platform brand colors */
+    .badge-platform[data-platform="Netflix"]      { background: rgba(229,9,20,0.18);   color: #ff5560; }
+    .badge-platform[data-platform="Disney+"]      { background: rgba(17,60,207,0.22);  color: #6c8aff; }
+    .badge-platform[data-platform="Prime Video"]  { background: rgba(0,168,225,0.18);  color: #4dc6ff; }
+    .badge-platform[data-platform="Viki"]         { background: rgba(26,183,234,0.18); color: #4dd2ff; }
+    .badge-platform[data-platform="Telegram"]     { background: rgba(0,136,204,0.20);  color: #4db8e8; }
+    .badge-platform[data-platform="iQIYI"]        { background: rgba(0,190,6,0.18);    color: #4be066; }
+    .badge-platform[data-platform="WeTV"]         { background: rgba(255,109,0,0.20);  color: #ffa05c; }
+    .badge-platform[data-platform="Apple TV+"]    { background: rgba(255,255,255,0.10); color: #f0f0f0; }
+    [data-theme="light"] .badge-platform[data-platform="Apple TV+"] { background: rgba(0,0,0,0.10); color: #111; }
+
+    /* Year chip */
+    .badge-year {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+    .card-poster-wrap .badge-year {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      backdrop-filter: blur(6px);
+      z-index: 2;
+    }
+
+    /* Country flag */
+    .flag { margin-right: 4px; font-size: 11px; }
 
     .card-actions {
       position: absolute;
@@ -540,6 +579,32 @@
       flex-shrink: 0;
     }
 
+    /* ── FAB (mobile) ── */
+    .fab {
+      display: none;
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(229,9,20,0.45), 0 2px 6px rgba(0,0,0,0.25);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .fab:hover { background: var(--accent-hover); transform: translateY(-2px); }
+    .fab:active { transform: scale(0.94); }
+    @media (max-width: 640px) {
+      .fab { display: flex; }
+    }
+    body.modal-open .fab { display: none; }
+
     /* ── EMPTY STATE ── */
     .empty-state {
       text-align: center;
@@ -549,7 +614,127 @@
 
     .empty-state svg { margin: 0 auto 20px; opacity: 0.3; }
     .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
-    .empty-state p { font-size: 14px; line-height: 1.6; max-width: 320px; margin: 0 auto 24px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; max-width: 360px; margin: 0 auto 24px; }
+    .empty-state .empty-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .empty-state .kbd-hint { margin-top: 18px; font-size: 12px; color: var(--text-dim); display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+    /* ── KEYBOARD KEY ── */
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 20px;
+      padding: 0 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .search-kbd {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .nav-search .search-input:focus ~ .search-kbd,
+    .search-clear.visible ~ .search-kbd { display: none; }
+
+    /* ── SKELETON LOADER ── */
+    @keyframes skeleton-shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-card-hover) 40%, var(--bg-card) 80%);
+      background-size: 800px 100%;
+      animation: skeleton-shimmer 1.4s linear infinite;
+      border-radius: 4px;
+    }
+    .skeleton-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .skeleton-card .skel-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      display: block;
+    }
+    .skeleton-card .skel-body { padding: 10px 12px 12px; }
+    .skeleton-card .skel-line { height: 10px; border-radius: 3px; margin-bottom: 6px; }
+    .skeleton-card .skel-line.w-80 { width: 80%; }
+    .skeleton-card .skel-line.w-50 { width: 50%; }
+    .skeleton-card .skel-line.w-30 { width: 30%; }
+
+    /* TMDB search skeletons */
+    .tmdb-skel-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tmdb-skel-row:last-child { border-bottom: none; }
+    .tmdb-skel-poster { width: 46px; height: 69px; border-radius: 4px; flex-shrink: 0; }
+    .tmdb-skel-info { flex: 1; padding-top: 6px; }
+    .tmdb-skel-info .skel-line { height: 10px; border-radius: 3px; margin-bottom: 6px; }
+
+    /* ── CARD HOVER OVERLAY ── */
+    .card-poster-wrap {
+      position: relative;
+      overflow: hidden;
+    }
+    .card-hover-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0) 100%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 14px;
+      pointer-events: none;
+      color: #fff;
+    }
+    .series-card:hover .card-hover-overlay { opacity: 1; }
+    .card-hover-synopsis {
+      font-size: 11px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.85);
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .card-hover-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--accent);
+      padding: 5px 10px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+    .series-grid.list-view .card-hover-overlay { display: none; }
+
+    /* polish card hover */
+    .series-card { transition: transform 0.18s cubic-bezier(.2,.7,.3,1.2), border-color var(--transition), box-shadow var(--transition); }
+    .card-poster-placeholder { transition: transform 0.5s ease; }
+    .series-card:hover .card-poster, .series-card:hover .card-poster-placeholder { transform: scale(1.04); }
 
     /* ── MODAL OVERLAY ── */
     .modal-overlay {
@@ -1171,6 +1356,7 @@
     <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar pesquisa">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
+    <span class="kbd search-kbd" id="searchKbd" title="Pressione / para focar">/</span>
   </div>
   <div class="nav-right">
     <span class="nav-count" id="navCount"></span>
@@ -1440,6 +1626,11 @@
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- FAB (mobile) -->
+<button class="fab" id="fab" onclick="openAddModal()" aria-label="Adicionar série">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
 <script>
 // ── STATE ──
 let series = [];
@@ -1449,6 +1640,7 @@ let currentView = 'grid';
 let editingId = null;
 let currentPosterData = null;
 let deleteTargetId = null;
+let isLoading = true;
 
 const STORAGE_KEY = 'justlist_series_v1';
 
@@ -1477,7 +1669,24 @@ let tmdbCache = {};
 try { tmdbCache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch(e) { tmdbCache = {}; }
 function saveTmdbCache() { localStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(tmdbCache)); }
 
-let pendingTmdb = null; // {tmdb_id, trailer_url} para anexar ao salvar
+// Bandeiras por país (badge de tipo)
+const COUNTRY_FLAG = {
+  'Coreia': '🇰🇷',
+  'China': '🇨🇳',
+  'Turquia': '🇹🇷',
+  'Outros': '🌍'
+};
+
+// Retorna o ano da série lendo do registro ou do cache TMDB
+function getSeriesYear(s) {
+  if (s && s.year) return String(s.year).slice(0, 4);
+  if (s && s.first_air_date) return String(s.first_air_date).slice(0, 4);
+  const cached = s && s.id ? tmdbCache[s.id] : null;
+  if (cached && cached.year) return String(cached.year).slice(0, 4);
+  return '';
+}
+
+let pendingTmdb = null; // {tmdb_id, trailer_url, year} para anexar ao salvar
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 
@@ -1526,6 +1735,16 @@ async function tmdbSearch(query) {
   }
   tmdbLastQuery = query;
   spinner.classList.add('visible');
+  // show skeleton rows
+  const skelRow = `<div class="tmdb-skel-row">
+    <div class="tmdb-skel-poster skeleton"></div>
+    <div class="tmdb-skel-info">
+      <div class="skel-line skeleton" style="width:70%"></div>
+      <div class="skel-line skeleton" style="width:40%"></div>
+    </div>
+  </div>`;
+  resultsBox.innerHTML = skelRow.repeat(3);
+  resultsBox.classList.add('visible');
   try {
     const url = `${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}&query=${encodeURIComponent(query)}&page=1&include_adult=false`;
     const res = await fetch(url);
@@ -1637,7 +1856,7 @@ async function selectTmdbResult(tmdbId) {
       showPosterPreview(poster);
     }
 
-    pendingTmdb = { tmdb_id: d.id, trailer_url: trailer };
+    pendingTmdb = { tmdb_id: d.id, trailer_url: trailer, year: (d.first_air_date || '').slice(0,4) || null };
 
     document.getElementById('tmdbSearchInput').value = '';
     box.classList.remove('visible');
@@ -1768,18 +1987,33 @@ function closeSidebar() {
 }
 
 // ── RENDER ──
+function renderSkeletons(count = 12) {
+  const skel = `<div class="skeleton-card">
+    <div class="skel-poster skeleton"></div>
+    <div class="skel-body">
+      <div class="skel-line skeleton w-80"></div>
+      <div class="skel-line skeleton w-50"></div>
+      <div class="skel-line skeleton w-30"></div>
+    </div>
+  </div>`;
+  return Array(count).fill(skel).join('');
+}
+
 function render() {
   const grid = document.getElementById('seriesGrid');
   const filtered = getFiltered();
 
   // Update count
   document.getElementById('navCount').textContent =
+    isLoading ? '' :
     series.length === 0 ? '' :
     series.length === 1 ? '1 série' : `${series.length} séries`;
 
   // Results info
   const info = document.getElementById('resultsInfo');
-  if (searchQuery || filters.type.length || filters.genre.length || filters.platform.length) {
+  if (isLoading) {
+    info.innerHTML = '<span style="opacity:.6">Carregando...</span>';
+  } else if (searchQuery || filters.type.length || filters.genre.length || filters.platform.length) {
     info.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${series.length}</strong> séries`;
   } else {
     info.innerHTML = series.length > 0 ? `<strong>${series.length}</strong> ${series.length === 1 ? 'série cadastrada' : 'séries cadastradas'}` : '';
@@ -1788,12 +2022,26 @@ function render() {
   // Grid
   grid.className = 'series-grid' + (currentView === 'list' ? ' list-view' : '');
 
+  if (isLoading) {
+    grid.innerHTML = renderSkeletons(12);
+    return;
+  }
+
   if (series.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
-        <h3>Nenhuma série ainda</h3>
-        <p>Comece adicionando sua primeira série clicando no botão vermelho no canto inferior.</p>
+        <h3>Sua lista está vazia</h3>
+        <p>Comece adicionando uma série — você pode buscar pelo nome e o pôster, sinopse e gêneros são preenchidos automaticamente via TMDB.</p>
+        <div class="empty-actions">
+          <button class="btn btn-primary" onclick="openAddModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Adicionar primeira série
+          </button>
+        </div>
+        <div class="kbd-hint">
+          Dica: pressione <span class="kbd">N</span> para adicionar rápido
+        </div>
       </div>`;
     return;
   }
@@ -1804,7 +2052,9 @@ function render() {
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
         <h3>Nenhum resultado</h3>
         <p>Nenhuma série corresponde aos filtros ou pesquisa atual.</p>
-        <button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button>
+        <div class="empty-actions">
+          <button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button>
+        </div>
       </div>`;
     return;
   }
@@ -1817,15 +2067,34 @@ function renderCard(s, idx) {
   const animStyle = `style="animation-delay:${delay}ms"`;
   const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
   const posterHtml = s.poster
-    ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" />`
+    ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')" />`
     : `<div class="card-poster-placeholder">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
         <span>Sem poster</span>
        </div>`;
 
+  const flag = COUNTRY_FLAG[s.type] || '';
+  const flagSpan = flag ? `<span class="flag" aria-hidden="true">${flag}</span>` : '';
+  const year = getSeriesYear(s);
+  const yearBadgeGrid = year ? `<span class="badge badge-year">${year}</span>` : '';
+  const yearBadgeMeta = year ? `<span class="badge badge-year">${year}</span>` : '';
+
   const genreBadges = genres.slice(0, 2).map(g =>
     `<span class="badge badge-genre">${escHtml(g)}</span>`
   ).join('');
+
+  const hoverOverlay = currentView === 'grid' ? `
+    <div class="card-hover-overlay">
+      ${s.synopsis ? `<div class="card-hover-synopsis">${escHtml(s.synopsis)}</div>` : ''}
+      <span class="card-hover-cta">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Ver detalhes
+      </span>
+    </div>` : '';
+
+  const posterBlock = currentView === 'grid'
+    ? `<div class="card-poster-wrap">${yearBadgeGrid}${posterHtml}${hoverOverlay}</div>`
+    : posterHtml;
 
   if (currentView === 'list') {
     return `<div class="series-card" ${animStyle} onclick="openDetail('${s.id}')">
@@ -1833,9 +2102,10 @@ function renderCard(s, idx) {
       <div class="card-body">
         <div class="card-title">${escHtml(s.name)}</div>
         <div class="card-meta">
-          <span class="badge badge-type">${escHtml(s.type)}</span>
+          <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
+          ${yearBadgeMeta}
           ${genreBadges}
-          <span class="badge badge-platform">${escHtml(s.platform)}</span>
+          <span class="badge badge-platform" data-platform="${escHtml(s.platform)}">${escHtml(s.platform)}</span>
         </div>
       </div>
       <div class="card-actions">
@@ -1850,7 +2120,7 @@ function renderCard(s, idx) {
   }
 
   return `<div class="series-card" ${animStyle} onclick="openDetail('${s.id}')">
-    ${posterHtml}
+    ${posterBlock}
     <div class="card-actions">
       <button class="card-action-btn card-action-edit" onclick="event.stopPropagation(); openEditModal('${s.id}')" title="Editar">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1862,9 +2132,9 @@ function renderCard(s, idx) {
     <div class="card-body">
       <div class="card-title">${escHtml(s.name)}</div>
       <div class="card-meta">
-        <span class="badge badge-type">${escHtml(s.type)}</span>
+        <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
         ${genreBadges}
-        <span class="badge badge-platform">${escHtml(s.platform)}</span>
+        <span class="badge badge-platform" data-platform="${escHtml(s.platform)}">${escHtml(s.platform)}</span>
       </div>
     </div>
   </div>`;
@@ -1950,11 +2220,13 @@ function setView(v) {
 function openModal(id) {
   document.getElementById(id).classList.add('open');
   document.body.style.overflow = 'hidden';
+  document.body.classList.add('modal-open');
 }
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
+  document.body.classList.remove('modal-open');
 }
 
 function handleOverlayClick(e, id) {
@@ -2234,6 +2506,30 @@ document.addEventListener('keydown', e => {
       if (document.getElementById(id).classList.contains('open')) closeModal(id);
     });
     closeSidebar();
+    return;
+  }
+
+  // Ignorar atalhos quando algum campo de texto está focado
+  const tag = (e.target && e.target.tagName) || '';
+  const isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable);
+  if (isEditable) return;
+
+  // Ignorar combos com modificadores
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+  // Não atrapalhar se algum modal estiver aberto
+  const anyModalOpen = ['formModal','detailModal','confirmModal','trailerModal']
+    .some(id => document.getElementById(id).classList.contains('open'));
+  if (anyModalOpen) return;
+
+  if (e.key === '/') {
+    e.preventDefault();
+    const inp = document.getElementById('searchInput');
+    inp.focus();
+    inp.select();
+  } else if (e.key === 'n' || e.key === 'N') {
+    e.preventDefault();
+    openAddModal();
   }
 });
 
@@ -2277,10 +2573,30 @@ function updateThemeIcon() {
 
 function loadSavedTheme() {
   const saved = localStorage.getItem('justlist_theme');
-  if (saved === 'light') {
+  let theme = saved;
+  if (!theme) {
+    // Auto: segue preferência do sistema
+    theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  if (theme === 'light') {
     document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
   }
   updateThemeIcon();
+
+  // Se o usuário ainda não escolheu, acompanha mudanças do sistema em tempo real
+  if (!saved && window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    const handler = (e) => {
+      if (localStorage.getItem('justlist_theme')) return; // já tem escolha manual
+      if (e.matches) document.documentElement.setAttribute('data-theme', 'light');
+      else document.documentElement.removeAttribute('data-theme');
+      updateThemeIcon();
+    };
+    if (mq.addEventListener) mq.addEventListener('change', handler);
+    else if (mq.addListener) mq.addListener(handler);
+  }
 }
 
 // ── POSTER FROM URL ──
@@ -2296,9 +2612,12 @@ function loadPosterFromUrl() {
 // ── INIT ──
 loadSavedTheme();
 (async function init() {
+  render(); // show skeletons immediately
   await loadData();
+  isLoading = false;
   render();
 })();
 </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
