@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <title>JustList</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23E50914'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='18' fill='white'>J</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --bg-card: #1a1a1a;
+      --bg-card-hover: #222222;
+      --bg-modal: #161616;
+      --bg-input: #1f1f1f;
+      --bg-filter: #1a1a1a;
+      --bg-sidebar: #111111;
+      --border: #2a2a2a;
+      --border-focus: #E50914;
+      --text: #ffffff;
+      --text-muted: #a0a0a0;
+      --text-dim: #666666;
+      --accent: #E50914;
+      --accent-hover: #ff1a1a;
+      --accent-dim: rgba(229,9,20,0.15);
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.5);
+      --shadow-card: 0 2px 12px rgba(0,0,0,0.4);
+      --transition: 0.18s ease;
+      --sidebar-width: 240px;
+      --nav-bg: rgba(13,13,13,0.92);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f5f5;
+      --bg-card: #ffffff;
+      --bg-card-hover: #fafafa;
+      --bg-modal: #ffffff;
+      --bg-input: #f0f0f0;
+      --bg-filter: #f0f0f0;
+      --bg-sidebar: #fafafa;
+      --border: #e0e0e0;
+      --border-focus: #E50914;
+      --text: #111111;
+      --text-muted: #555555;
+      --text-dim: #888888;
+      --accent: #E50914;
+      --accent-hover: #cc0812;
+      --accent-dim: rgba(229,9,20,0.1);
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
+      --nav-bg: rgba(255,255,255,0.92);
+    }
+
+    html { background: var(--bg); scroll-behavior: smooth; transition: background 0.3s ease; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+    /* ── HEADER / NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .nav-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .nav-logo-text span { color: var(--accent); }
+
+    .nav-search {
+      flex: 1;
+      max-width: 480px;
+      position: relative;
+      margin: 0 auto;
+    }
+
+    .nav-search .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .nav-search .search-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 14px;
+      padding: 9px 36px 9px 38px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .nav-search .search-input::placeholder { color: var(--text-dim); }
+    .nav-search .search-input:focus { border-color: var(--border-focus); }
+
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 2px;
+      display: none;
+      align-items: center;
+    }
+    .search-clear.visible { display: flex; }
+    .search-clear:hover { color: var(--text); }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .nav-count {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .theme-toggle {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .theme-toggle:hover { background: var(--bg-card); color: var(--text); border-color: #444; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background var(--transition), transform var(--transition), opacity var(--transition);
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg-card); color: var(--text); border-color: #444; }
+
+    .btn-danger {
+      background: transparent;
+      color: #ff4444;
+      border: 1px solid #ff4444;
+    }
+    .btn-danger:hover { background: rgba(255,68,68,0.1); }
+
+    /* ── FAB — removed, button is now inline ── */
+
+    /* ── LAYOUT: SIDEBAR + CONTENT ── */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* ── SIDEBAR (FILTERS) ── */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      padding: 20px 16px;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .filters-clear {
+      font-size: 11px;
+      color: var(--accent);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      display: none;
+    }
+    .filters-clear.visible { display: block; }
+    .filters-clear:hover { text-decoration: underline; }
+
+    .filter-group {
+      margin-bottom: 18px;
+    }
+
+    .filter-group-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .chip {
+      padding: 5px 11px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: var(--bg-filter);
+      color: var(--text-muted);
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .chip:hover { color: var(--text); background: var(--bg-card-hover); }
+    .chip.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* ── MOBILE FILTER TOGGLE ── */
+    .filter-toggle-btn {
+      display: none;
+      padding: 7px 14px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition);
+    }
+    .filter-toggle-btn:hover { border-color: #444; color: var(--text); }
+    .filter-toggle-btn .filter-count-badge {
+      background: var(--accent);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 8px;
+      display: none;
+    }
+    .filter-toggle-btn .filter-count-badge.visible { display: inline; }
+
+    /* ── MAIN CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 20px 24px 80px;
+      min-width: 0;
+    }
+
+    /* ── CONTENT TOOLBAR ── */
+    .content-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .results-info {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .results-info strong { color: var(--text-muted); }
+
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3px;
+    }
+
+    .view-btn {
+      padding: 5px 8px;
+      border-radius: 5px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+    }
+    .view-btn.active { background: var(--bg-card-hover); color: var(--text); }
+
+    /* ── GRID ── */
+    .series-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 16px;
+    }
+
+    .series-grid.list-view {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    /* ── CARD ── */
+    .series-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+      position: relative;
+    }
+    .series-card:hover {
+      transform: translateY(-3px);
+      border-color: #3a3a3a;
+      box-shadow: var(--shadow-card);
+    }
+
+    .card-poster {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      display: block;
+      background: #1f1f1f;
+    }
+
+    .card-poster-placeholder {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text-dim);
+    }
+
+    .card-poster-placeholder svg { opacity: 0.4; }
+    .card-poster-placeholder span { font-size: 11px; opacity: 0.5; }
+
+    .card-body {
+      padding: 10px 12px 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; }
+    .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+    .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+    .card-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .series-card:hover .card-actions { opacity: 1; }
+
+    .card-action-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      backdrop-filter: blur(8px);
+    }
+
+    .card-action-edit {
+      background: rgba(0,0,0,0.7);
+      color: var(--text-muted);
+    }
+    .card-action-edit:hover { background: rgba(0,0,0,0.9); color: var(--text); }
+
+    .card-action-delete {
+      background: rgba(0,0,0,0.7);
+      color: #ff6b6b;
+    }
+    .card-action-delete:hover { background: rgba(255,68,68,0.3); color: #ff4444; }
+
+    /* ── LIST VIEW CARD ── */
+    .series-grid.list-view .series-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+    }
+
+    .series-grid.list-view .card-poster,
+    .series-grid.list-view .card-poster-placeholder {
+      width: 48px;
+      height: 72px;
+      aspect-ratio: unset;
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
+
+    .series-grid.list-view .card-body {
+      flex: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .series-grid.list-view .card-title {
+      margin-bottom: 0;
+      min-width: 140px;
+      flex: 1;
+      -webkit-line-clamp: 1;
+    }
+
+    .series-grid.list-view .card-meta {
+      flex-wrap: wrap;
+    }
+
+    .series-grid.list-view .card-actions {
+      position: static;
+      opacity: 1;
+      flex-shrink: 0;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--text-dim);
+    }
+
+    .empty-state svg { margin: 0 auto 20px; opacity: 0.3; }
+    .empty-state h3 { font-size: 18px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; max-width: 320px; margin: 0 auto 24px; }
+
+    /* ── MODAL OVERLAY ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--bg-modal);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(16px) scale(0.98);
+      transition: transform 0.2s ease;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg-modal);
+      z-index: 1;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+    }
+    .modal-close:hover { background: var(--bg-card); color: var(--text); }
+
+    .modal-body { padding: 20px 24px; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color var(--transition);
+      font-family: inherit;
+    }
+    .form-input::placeholder,
+    .form-textarea::placeholder { color: var(--text-dim); }
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus { border-color: var(--border-focus); }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+    }
+    .form-select option { background: #1f1f1f; }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 90px;
+      line-height: 1.5;
+    }
+
+    .genre-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .genre-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg-filter);
+      color: var(--text-muted);
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .genre-chip:hover { border-color: #444; color: var(--text); }
+    .genre-chip.selected {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .poster-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      position: relative;
+    }
+    .poster-upload-area:hover { border-color: #444; background: rgba(255,255,255,0.02); }
+    .poster-upload-area.has-image { border-style: solid; border-color: var(--border); padding: 0; overflow: hidden; }
+
+    .poster-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .poster-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      display: block;
+      border-radius: var(--radius);
+    }
+
+    .poster-upload-hint {
+      color: var(--text-dim);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    .poster-upload-hint svg { margin: 0 auto 8px; opacity: 0.4; }
+    .poster-upload-hint p { margin-top: 4px; font-size: 11px; opacity: 0.6; }
+
+    .poster-remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: #ff6b6b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      transition: background var(--transition);
+    }
+    .poster-remove-btn:hover { background: rgba(255,68,68,0.3); }
+
+    /* ── DETAIL MODAL ── */
+    .detail-modal { max-width: 480px; }
+
+    .detail-poster-wrap {
+      position: relative;
+      width: 100%;
+      max-height: 280px;
+      overflow: hidden;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .detail-poster {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .detail-poster-placeholder {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+    }
+
+    .detail-poster-gradient {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to top, var(--bg-modal), transparent);
+    }
+
+    .detail-body { padding: 20px 24px 24px; }
+
+    .detail-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .detail-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .detail-badge {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .detail-badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; border: 1px solid rgba(229,9,20,0.3); }
+    .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
+    .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
+
+    .detail-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .detail-synopsis {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .detail-no-synopsis {
+      font-size: 13px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .detail-footer {
+      display: flex;
+      gap: 10px;
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── CONFIRM MODAL ── */
+    .confirm-modal { max-width: 380px; }
+    .confirm-body { padding: 24px; text-align: center; }
+    .confirm-icon { margin: 0 auto 16px; color: #ff4444; }
+    .confirm-title { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .confirm-text { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+    .confirm-footer { display: flex; gap: 10px; padding: 0 24px 24px; }
+    .confirm-footer .btn { flex: 1; justify-content: center; }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.25s ease forwards;
+      max-width: 280px;
+    }
+
+    .toast.success { border-left: 3px solid #22c55e; }
+    .toast.error { border-left: 3px solid #ef4444; }
+    .toast.info { border-left: 3px solid var(--accent); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 12px; gap: 10px; }
+      .nav-logo-text { display: none; }
+      .nav-search { max-width: none; }
+      .nav-count { display: none; }
+
+      .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        bottom: 0;
+        z-index: 90;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        width: 260px;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      }
+      .sidebar.open { transform: translateX(0); }
+
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        top: 60px;
+        background: rgba(0,0,0,0.5);
+        z-index: 89;
+      }
+      .sidebar-overlay.open { display: block; }
+
+      .filter-toggle-btn { display: flex; }
+
+      .content { padding: 16px 12px 90px; }
+      .series-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+      .modal { max-height: 95vh; }
+      .fab { bottom: 20px; right: 16px; width: 52px; height: 52px; }
+    }
+
+    @media (min-width: 769px) {
+      .sidebar-overlay { display: none !important; }
+      .filter-toggle-btn { display: none !important; }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .series-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); }
+    }
+
+    @media (min-width: 1025px) {
+      .series-grid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); }
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .series-card {
+      animation: fadeIn 0.2s ease forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<!-- HEADER -->
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="nav-logo-text">Just<span>List</span></span>
+  </a>
+  <div class="nav-search">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="Pesquisar séries..." autocomplete="off" />
+    <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar pesquisa">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="nav-right">
+    <span class="nav-count" id="navCount"></span>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">
+      <svg id="themeIconDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="app-layout">
+
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR (FILTERS) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Filtros</span>
+      <button class="filters-clear" id="filtersClear" onclick="clearFilters()">Limpar</button>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Tipo</div>
+      <div class="filter-chips" id="filterType">
+        <span class="chip" data-filter="type" data-value="Coreia" onclick="toggleFilter(this)">Coreia</span>
+        <span class="chip" data-filter="type" data-value="China" onclick="toggleFilter(this)">China</span>
+        <span class="chip" data-filter="type" data-value="Turquia" onclick="toggleFilter(this)">Turquia</span>
+        <span class="chip" data-filter="type" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Gênero</div>
+      <div class="filter-chips" id="filterGenre">
+        <span class="chip" data-filter="genre" data-value="Romance" onclick="toggleFilter(this)">Romance</span>
+        <span class="chip" data-filter="genre" data-value="Ação" onclick="toggleFilter(this)">Ação</span>
+        <span class="chip" data-filter="genre" data-value="Drama" onclick="toggleFilter(this)">Drama</span>
+        <span class="chip" data-filter="genre" data-value="Comédia" onclick="toggleFilter(this)">Comédia</span>
+        <span class="chip" data-filter="genre" data-value="Suspense" onclick="toggleFilter(this)">Suspense</span>
+        <span class="chip" data-filter="genre" data-value="Terror" onclick="toggleFilter(this)">Terror</span>
+        <span class="chip" data-filter="genre" data-value="Fantasia" onclick="toggleFilter(this)">Fantasia</span>
+        <span class="chip" data-filter="genre" data-value="Família" onclick="toggleFilter(this)">Família</span>
+        <span class="chip" data-filter="genre" data-value="Esportes" onclick="toggleFilter(this)">Esportes</span>
+        <span class="chip" data-filter="genre" data-value="Direito" onclick="toggleFilter(this)">Direito</span>
+        <span class="chip" data-filter="genre" data-value="Escola" onclick="toggleFilter(this)">Escola</span>
+        <span class="chip" data-filter="genre" data-value="Militar" onclick="toggleFilter(this)">Militar</span>
+        <span class="chip" data-filter="genre" data-value="Vida" onclick="toggleFilter(this)">Vida</span>
+        <span class="chip" data-filter="genre" data-value="Detetive" onclick="toggleFilter(this)">Detetive</span>
+        <span class="chip" data-filter="genre" data-value="Histórico" onclick="toggleFilter(this)">Histórico</span>
+        <span class="chip" data-filter="genre" data-value="Médico" onclick="toggleFilter(this)">Médico</span>
+        <span class="chip" data-filter="genre" data-value="Crime" onclick="toggleFilter(this)">Crime</span>
+        <span class="chip" data-filter="genre" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Plataforma</div>
+      <div class="filter-chips" id="filterPlatform">
+        <span class="chip" data-filter="platform" data-value="Netflix" onclick="toggleFilter(this)">Netflix</span>
+        <span class="chip" data-filter="platform" data-value="Disney+" onclick="toggleFilter(this)">Disney+</span>
+        <span class="chip" data-filter="platform" data-value="Prime Video" onclick="toggleFilter(this)">Prime Video</span>
+        <span class="chip" data-filter="platform" data-value="Viki" onclick="toggleFilter(this)">Viki</span>
+        <span class="chip" data-filter="platform" data-value="Telegram" onclick="toggleFilter(this)">Telegram</span>
+        <span class="chip" data-filter="platform" data-value="iQIYI" onclick="toggleFilter(this)">iQIYI</span>
+        <span class="chip" data-filter="platform" data-value="WeTV" onclick="toggleFilter(this)">WeTV</span>
+        <span class="chip" data-filter="platform" data-value="Apple TV+" onclick="toggleFilter(this)">Apple TV+</span>
+        <span class="chip" data-filter="platform" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+    <div class="content-toolbar">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleSidebar()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+          Filtros
+          <span class="filter-count-badge" id="filterCountBadge">0</span>
+        </button>
+        <div class="results-info" id="resultsInfo"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="view-toggle">
+          <button class="view-btn active" id="viewGrid" onclick="setView('grid')" title="Grade">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          </button>
+          <button class="view-btn" id="viewList" onclick="setView('list')" title="Lista">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          </button>
+        </div>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Adicionar
+        </button>
+      </div>
+    </div>
+
+    <!-- SERIES GRID -->
+    <div class="series-grid" id="seriesGrid"></div>
+  </main>
+</div>
+
+<!-- ADD/EDIT MODAL moved inline -->
+
+<!-- ── ADD/EDIT MODAL ── -->
+<div class="modal-overlay" id="formModal" onclick="handleOverlayClick(event, 'formModal')">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="formModalTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="formModalTitle">Adicionar Série</h2>
+      <button class="modal-close" onclick="closeModal('formModal')" aria-label="Fechar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId" />
+
+      <div class="form-group">
+        <label class="form-label">Capa / Poster</label>
+        <div class="poster-upload-area" id="posterUploadArea">
+          <input type="file" id="posterInput" accept="image/*" onchange="handlePosterUpload(event)" />
+          <div class="poster-upload-hint" id="posterHint">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 8px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <span>Clique para adicionar uma imagem</span>
+            <p>JPG, PNG, WEBP — máx. 5MB</p>
+          </div>
+          <img id="posterPreview" class="poster-preview" src="" alt="Preview do poster" style="display:none" />
+          <button class="poster-remove-btn" id="posterRemoveBtn" onclick="removePoster(event)" style="display:none" title="Remover imagem">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <input class="form-input" id="inputPosterUrl" type="url" placeholder="Ou cole o link da imagem aqui..." style="flex:1" />
+          <button class="btn btn-ghost" onclick="loadPosterFromUrl()" style="padding:9px 12px;flex-shrink:0">Carregar</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputName">Nome da Série <span style="color:var(--accent)">*</span></label>
+        <input class="form-input" id="inputName" type="text" placeholder="Ex: Alchemy of Souls" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputType">Tipo <span style="color:var(--accent)">*</span></label>
+        <select class="form-select" id="inputType">
+          <option value="">Selecione o tipo</option>
+          <option value="Coreia">Coreia</option>
+          <option value="China">China</option>
+          <option value="Turquia">Turquia</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Gêneros <span style="color:var(--accent)">*</span></label>
+        <div class="genre-chips" id="genreChips">
+          <span class="genre-chip" data-value="Romance" onclick="toggleGenreChip(this)">Romance</span>
+          <span class="genre-chip" data-value="Ação" onclick="toggleGenreChip(this)">Ação</span>
+          <span class="genre-chip" data-value="Drama" onclick="toggleGenreChip(this)">Drama</span>
+          <span class="genre-chip" data-value="Comédia" onclick="toggleGenreChip(this)">Comédia</span>
+          <span class="genre-chip" data-value="Suspense" onclick="toggleGenreChip(this)">Suspense</span>
+          <span class="genre-chip" data-value="Terror" onclick="toggleGenreChip(this)">Terror</span>
+          <span class="genre-chip" data-value="Fantasia" onclick="toggleGenreChip(this)">Fantasia</span>
+          <span class="genre-chip" data-value="Família" onclick="toggleGenreChip(this)">Família</span>
+          <span class="genre-chip" data-value="Esportes" onclick="toggleGenreChip(this)">Esportes</span>
+          <span class="genre-chip" data-value="Direito" onclick="toggleGenreChip(this)">Direito</span>
+          <span class="genre-chip" data-value="Escola" onclick="toggleGenreChip(this)">Escola</span>
+          <span class="genre-chip" data-value="Militar" onclick="toggleGenreChip(this)">Militar</span>
+          <span class="genre-chip" data-value="Vida" onclick="toggleGenreChip(this)">Vida</span>
+          <span class="genre-chip" data-value="Detetive" onclick="toggleGenreChip(this)">Detetive</span>
+          <span class="genre-chip" data-value="Histórico" onclick="toggleGenreChip(this)">Histórico</span>
+          <span class="genre-chip" data-value="Médico" onclick="toggleGenreChip(this)">Médico</span>
+          <span class="genre-chip" data-value="Crime" onclick="toggleGenreChip(this)">Crime</span>
+          <span class="genre-chip" data-value="Outros" onclick="toggleGenreChip(this)">Outros</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputPlatform">Plataforma <span style="color:var(--accent)">*</span></label>
+        <select class="form-select" id="inputPlatform">
+          <option value="">Selecione a plataforma</option>
+          <option value="Netflix">Netflix</option>
+          <option value="Disney+">Disney+</option>
+          <option value="Prime Video">Prime Video</option>
+          <option value="Viki">Viki</option>
+          <option value="Telegram">Telegram</option>
+          <option value="iQIYI">iQIYI</option>
+          <option value="WeTV">WeTV</option>
+          <option value="Apple TV+">Apple TV+</option>
+          <option value="Outros">Outros</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="inputSynopsis">Sinopse</label>
+        <textarea class="form-textarea" id="inputSynopsis" placeholder="Escreva uma breve descrição da série..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('formModal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSeries()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DETAIL MODAL ── -->
+<div class="modal-overlay" id="detailModal" onclick="handleOverlayClick(event, 'detailModal')">
+  <div class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="detailTitle">Detalhes</h2>
+      <button class="modal-close" onclick="closeModal('detailModal')" aria-label="Fechar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="detailContent"></div>
+    <div class="detail-footer" id="detailFooter"></div>
+  </div>
+</div>
+
+<!-- ── CONFIRM MODAL ── -->
+<div class="modal-overlay" id="confirmModal" onclick="handleOverlayClick(event, 'confirmModal')">
+  <div class="modal confirm-modal" role="dialog" aria-modal="true">
+    <div class="confirm-body">
+      <div class="confirm-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <div class="confirm-title">Excluir série?</div>
+      <div class="confirm-text" id="confirmText">Esta ação não pode ser desfeita.</div>
+    </div>
+    <div class="confirm-footer">
+      <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancelar</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── STATE ──
+let series = [];
+let filters = { type: [], genre: [], platform: [] };
+let searchQuery = '';
+let currentView = 'grid';
+let editingId = null;
+let currentPosterData = null;
+let deleteTargetId = null;
+
+const STORAGE_KEY = 'justlist_series_v1';
+
+// ── SUPABASE ──
+// Troque pelos dados do seu projeto Supabase:
+// Project Settings > Data API > Project URL e anon/public key.
+const SUPABASE_URL = 'https://vwrjxsietwsybvpxmdvg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3cmp4c2lldHdzeWJ2cHhtZHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNTc2NTUsImV4cCI6MjA5NzgzMzY1NX0.yi4l0ZK5oVH2DKHPVA-MY6zfYSxVhhDD29-kkDT1DkA';
+const SUPABASE_TABLE = 'series';
+const supabaseClient = (
+  SUPABASE_URL.startsWith('https://') &&
+  SUPABASE_ANON_KEY &&
+  !SUPABASE_ANON_KEY.startsWith('COLE_AQUI')
+) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+// ── STORAGE ──
+async function loadData() {
+  if (!supabaseClient) {
+    // Enquanto você não configurar as chaves, o site continua funcionando localmente.
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) series = JSON.parse(raw);
+    } catch(e) { series = []; }
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .select('id, name, type, genres, platform, synopsis, poster, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error(error);
+    showToast('Erro ao carregar séries do Supabase.', 'error');
+    series = [];
+    return;
+  }
+
+  series = data || [];
+}
+
+async function insertSeries(item) {
+  if (!supabaseClient) {
+    series.push(item);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(series));
+    return item;
+  }
+
+  const { data, error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .insert(item)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function updateSeries(id, item) {
+  if (!supabaseClient) {
+    const idx = series.findIndex(x => x.id === id);
+    if (idx !== -1) series[idx] = { ...series[idx], ...item };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(series));
+    return series.find(x => x.id === id);
+  }
+
+  const { data, error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .update(item)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function removeSeriesFromDb(id) {
+  if (!supabaseClient) {
+    series = series.filter(x => x.id !== id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(series));
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from(SUPABASE_TABLE)
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ── RENDER ──
+function render() {
+  const grid = document.getElementById('seriesGrid');
+  const filtered = getFiltered();
+
+  // Update count
+  document.getElementById('navCount').textContent =
+    series.length === 0 ? '' :
+    series.length === 1 ? '1 série' : `${series.length} séries`;
+
+  // Results info
+  const info = document.getElementById('resultsInfo');
+  if (searchQuery || filters.type.length || filters.genre.length || filters.platform.length) {
+    info.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${series.length}</strong> séries`;
+  } else {
+    info.innerHTML = series.length > 0 ? `<strong>${series.length}</strong> ${series.length === 1 ? 'série cadastrada' : 'séries cadastradas'}` : '';
+  }
+
+  // Grid
+  grid.className = 'series-grid' + (currentView === 'list' ? ' list-view' : '');
+
+  if (series.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
+        <h3>Nenhuma série ainda</h3>
+        <p>Comece adicionando sua primeira série clicando no botão vermelho no canto inferior.</p>
+      </div>`;
+    return;
+  }
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+        <h3>Nenhum resultado</h3>
+        <p>Nenhuma série corresponde aos filtros ou pesquisa atual.</p>
+        <button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(s => renderCard(s)).join('');
+}
+
+function renderCard(s) {
+  const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+  const posterHtml = s.poster
+    ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" />`
+    : `<div class="card-poster-placeholder">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <span>Sem poster</span>
+       </div>`;
+
+  const genreBadges = genres.slice(0, 2).map(g =>
+    `<span class="badge badge-genre">${escHtml(g)}</span>`
+  ).join('');
+
+  if (currentView === 'list') {
+    return `<div class="series-card" onclick="openDetail('${s.id}')">
+      ${posterHtml}
+      <div class="card-body">
+        <div class="card-title">${escHtml(s.name)}</div>
+        <div class="card-meta">
+          <span class="badge badge-type">${escHtml(s.type)}</span>
+          ${genreBadges}
+          <span class="badge badge-platform">${escHtml(s.platform)}</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="card-action-btn card-action-edit" onclick="event.stopPropagation(); openEditModal('${s.id}')" title="Editar">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="card-action-btn card-action-delete" onclick="event.stopPropagation(); confirmDelete('${s.id}')" title="Excluir">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="series-card" onclick="openDetail('${s.id}')">
+    ${posterHtml}
+    <div class="card-actions">
+      <button class="card-action-btn card-action-edit" onclick="event.stopPropagation(); openEditModal('${s.id}')" title="Editar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="card-action-btn card-action-delete" onclick="event.stopPropagation(); confirmDelete('${s.id}')" title="Excluir">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="card-title">${escHtml(s.name)}</div>
+      <div class="card-meta">
+        <span class="badge badge-type">${escHtml(s.type)}</span>
+        ${genreBadges}
+        <span class="badge badge-platform">${escHtml(s.platform)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── FILTER / SEARCH ──
+function getFiltered() {
+  return series.filter(s => {
+    const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!s.name.toLowerCase().includes(q)) return false;
+    }
+    if (filters.type.length && !filters.type.includes(s.type)) return false;
+    if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
+    if (filters.platform.length && !filters.platform.includes(s.platform)) return false;
+    return true;
+  });
+}
+
+function toggleFilter(el) {
+  const filterKey = el.dataset.filter;
+  const value = el.dataset.value;
+  const arr = filters[filterKey];
+
+  // Type is single-select
+  if (filterKey === 'type') {
+    if (arr.includes(value)) {
+      filters.type = [];
+      el.classList.remove('active');
+    } else {
+      filters.type = [value];
+      document.querySelectorAll('[data-filter="type"].active').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+  } else {
+    const idx = arr.indexOf(value);
+    if (idx === -1) arr.push(value);
+    else arr.splice(idx, 1);
+    el.classList.toggle('active', arr.includes(value));
+  }
+  updateFiltersClearBtn();
+  render();
+}
+
+function clearFilters() {
+  filters = { type: [], genre: [], platform: [] };
+  document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
+  updateFiltersClearBtn();
+  render();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  render();
+}
+
+function clearAll() {
+  clearFilters();
+  clearSearch();
+}
+
+function updateFiltersClearBtn() {
+  const total = filters.type.length + filters.genre.length + filters.platform.length;
+  document.getElementById('filtersClear').classList.toggle('visible', total > 0);
+  const badge = document.getElementById('filterCountBadge');
+  badge.textContent = total;
+  badge.classList.toggle('visible', total > 0);
+}
+
+// ── VIEW ──
+function setView(v) {
+  currentView = v;
+  document.getElementById('viewGrid').classList.toggle('active', v === 'grid');
+  document.getElementById('viewList').classList.toggle('active', v === 'list');
+  render();
+}
+
+// ── MODAL HELPERS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+// ── ADD / EDIT MODAL ──
+function openAddModal() {
+  editingId = null;
+  currentPosterData = null;
+  document.getElementById('formModalTitle').textContent = 'Adicionar Série';
+  document.getElementById('editId').value = '';
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputType').value = '';
+  document.getElementById('inputPlatform').value = '';
+  document.getElementById('inputSynopsis').value = '';
+  document.getElementById('inputPosterUrl').value = '';
+  document.querySelectorAll('.genre-chip.selected').forEach(c => c.classList.remove('selected'));
+  resetPosterUI();
+  openModal('formModal');
+  setTimeout(() => document.getElementById('inputName').focus(), 100);
+}
+
+function openEditModal(id) {
+  const s = series.find(x => x.id === id);
+  if (!s) return;
+  editingId = id;
+  currentPosterData = s.poster || null;
+
+  document.getElementById('formModalTitle').textContent = 'Editar Série';
+  document.getElementById('editId').value = id;
+  document.getElementById('inputName').value = s.name;
+  document.getElementById('inputType').value = s.type;
+  document.getElementById('inputPlatform').value = s.platform;
+  document.getElementById('inputSynopsis').value = s.synopsis || '';
+  document.getElementById('inputPosterUrl').value = '';
+
+  const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+  document.querySelectorAll('.genre-chip').forEach(c => {
+    c.classList.toggle('selected', genres.includes(c.dataset.value));
+  });
+
+  if (s.poster) {
+    showPosterPreview(s.poster);
+  } else {
+    resetPosterUI();
+  }
+
+  closeModal('detailModal');
+  openModal('formModal');
+  setTimeout(() => document.getElementById('inputName').focus(), 100);
+}
+
+async function saveSeries() {
+  const name = document.getElementById('inputName').value.trim();
+  const type = document.getElementById('inputType').value;
+  const platform = document.getElementById('inputPlatform').value;
+  const synopsis = document.getElementById('inputSynopsis').value.trim();
+  const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(c => c.dataset.value);
+
+  if (!name) { showToast('Informe o nome da série.', 'error'); document.getElementById('inputName').focus(); return; }
+  if (!type) { showToast('Selecione o tipo da série.', 'error'); return; }
+  if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
+  if (!platform) { showToast('Selecione a plataforma.', 'error'); return; }
+
+  const payload = { name, type, genres, platform, synopsis, poster: currentPosterData };
+
+  try {
+    if (editingId) {
+      const updated = await updateSeries(editingId, payload);
+      const idx = series.findIndex(x => x.id === editingId);
+      if (idx !== -1) series[idx] = updated;
+      showToast('Série atualizada!', 'success');
+    } else {
+      const created = await insertSeries({ id: uid(), ...payload });
+      series.unshift(created);
+      showToast('Série adicionada!', 'success');
+    }
+
+    closeModal('formModal');
+    render();
+  } catch (error) {
+    console.error(error);
+    showToast('Erro ao salvar no Supabase.', 'error');
+  }
+}
+
+// ── POSTER ──
+function handlePosterUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Imagem muito grande. Máx. 5MB.', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    currentPosterData = ev.target.result;
+    showPosterPreview(ev.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showPosterPreview(src) {
+  const area = document.getElementById('posterUploadArea');
+  const hint = document.getElementById('posterHint');
+  const preview = document.getElementById('posterPreview');
+  const removeBtn = document.getElementById('posterRemoveBtn');
+  area.classList.add('has-image');
+  hint.style.display = 'none';
+  preview.src = src;
+  preview.style.display = 'block';
+  removeBtn.style.display = 'flex';
+}
+
+function removePoster(e) {
+  e.stopPropagation();
+  currentPosterData = null;
+  resetPosterUI();
+  document.getElementById('posterInput').value = '';
+}
+
+function resetPosterUI() {
+  const area = document.getElementById('posterUploadArea');
+  const hint = document.getElementById('posterHint');
+  const preview = document.getElementById('posterPreview');
+  const removeBtn = document.getElementById('posterRemoveBtn');
+  area.classList.remove('has-image');
+  hint.style.display = '';
+  preview.src = '';
+  preview.style.display = 'none';
+  removeBtn.style.display = 'none';
+}
+
+// ── GENRE CHIPS (form) ──
+function toggleGenreChip(el) {
+  el.classList.toggle('selected');
+}
+
+// ── DETAIL MODAL ──
+function openDetail(id) {
+  const s = series.find(x => x.id === id);
+  if (!s) return;
+  const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+
+  document.getElementById('detailTitle').textContent = s.name;
+
+  const posterHtml = s.poster
+    ? `<div class="detail-poster-wrap">
+        <img class="detail-poster" src="${s.poster}" alt="${escHtml(s.name)}" />
+        <div class="detail-poster-gradient"></div>
+       </div>`
+    : `<div class="detail-poster-placeholder">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+       </div>`;
+
+  const genreBadges = genres.map(g =>
+    `<span class="detail-badge detail-badge-genre">${escHtml(g)}</span>`
+  ).join('');
+
+  const synopsisHtml = s.synopsis
+    ? `<div class="detail-section-label">Sinopse</div>
+       <p class="detail-synopsis">${escHtml(s.synopsis).replace(/\n/g, '<br>')}</p>`
+    : `<p class="detail-no-synopsis">Sem sinopse cadastrada.</p>`;
+
+  document.getElementById('detailContent').innerHTML = `
+    ${posterHtml}
+    <div class="detail-body">
+      <h3 class="detail-title">${escHtml(s.name)}</h3>
+      <div class="detail-badges">
+        <span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>
+        <span class="detail-badge detail-badge-platform">${escHtml(s.platform)}</span>
+        ${genreBadges}
+      </div>
+      ${synopsisHtml}
+    </div>`;
+
+  document.getElementById('detailFooter').innerHTML = `
+    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="openEditModal('${s.id}')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Editar
+    </button>
+    <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="closeModal('detailModal'); confirmDelete('${s.id}')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+      Excluir
+    </button>`;
+
+  openModal('detailModal');
+}
+
+// ── DELETE ──
+function confirmDelete(id) {
+  const s = series.find(x => x.id === id);
+  if (!s) return;
+  deleteTargetId = id;
+  document.getElementById('confirmText').textContent = `Tem certeza que deseja excluir "${s.name}"? Esta ação não pode ser desfeita.`;
+  document.getElementById('confirmDeleteBtn').onclick = () => deleteSeries(id);
+  openModal('confirmModal');
+}
+
+async function deleteSeries(id) {
+  try {
+    await removeSeriesFromDb(id);
+    series = series.filter(x => x.id !== id);
+    closeModal('confirmModal');
+    showToast('Série excluída.', 'info');
+    render();
+  } catch (error) {
+    console.error(error);
+    showToast('Erro ao excluir no Supabase.', 'error');
+  }
+}
+
+// ── TOAST ──
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = {
+    success: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`,
+    info: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E50914" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>`
+  };
+  toast.innerHTML = `${icons[type] || icons.info}<span>${escHtml(msg)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.25s ease forwards';
+    setTimeout(() => toast.remove(), 250);
+  }, 3000);
+}
+
+// ── UTILS ──
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    ['detailModal','formModal','confirmModal'].forEach(id => {
+      if (document.getElementById(id).classList.contains('open')) closeModal(id);
+    });
+    closeSidebar();
+  }
+});
+
+// ── SEARCH INPUT ──
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  document.getElementById('searchClear').classList.toggle('visible', searchQuery.length > 0);
+  render();
+});
+
+// ── THEME TOGGLE ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  if (isLight) {
+    html.removeAttribute('data-theme');
+    localStorage.setItem('justlist_theme', 'dark');
+  } else {
+    html.setAttribute('data-theme', 'light');
+    localStorage.setItem('justlist_theme', 'light');
+  }
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.getElementById('themeIconDark').style.display = isLight ? 'none' : 'block';
+  document.getElementById('themeIconLight').style.display = isLight ? 'block' : 'none';
+}
+
+function loadSavedTheme() {
+  const saved = localStorage.getItem('justlist_theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+  updateThemeIcon();
+}
+
+// ── POSTER FROM URL ──
+function loadPosterFromUrl() {
+  const url = document.getElementById('inputPosterUrl').value.trim();
+  if (!url) { showToast('Cole o link da imagem primeiro.', 'error'); return; }
+  currentPosterData = url;
+  showPosterPreview(url);
+  document.getElementById('inputPosterUrl').value = '';
+  showToast('Imagem carregada!', 'success');
+}
+
+// ── INIT ──
+loadSavedTheme();
+(async function init() {
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
