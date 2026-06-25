@@ -1228,51 +1228,6 @@
       background: var(--border);
     }
 
-    /* ── TRAILER BUTTON ── */
-    .btn-trailer {
-      background: #ff0000;
-      color: white;
-    }
-    .btn-trailer:hover { background: #cc0000; }
-
-    /* ── TRAILER MODAL ── */
-    .trailer-modal {
-      max-width: 880px;
-      background: #000;
-      border: 1px solid #1a1a1a;
-      overflow: hidden;
-    }
-    .trailer-wrap {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%;
-    }
-    .trailer-wrap iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    .trailer-close-floating {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.7);
-      border: none;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      transition: background var(--transition);
-    }
-    .trailer-close-floating:hover { background: rgba(0,0,0,0.9); }
-
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       nav { padding: 0 12px; gap: 10px; }
@@ -1613,15 +1568,6 @@
   </div>
 </div>
 
-<!-- ── TRAILER MODAL ── -->
-<div class="modal-overlay" id="trailerModal" onclick="handleOverlayClick(event, 'trailerModal')">
-  <div class="modal trailer-modal" role="dialog" aria-modal="true">
-    <button class="trailer-close-floating" onclick="closeTrailerModal()" aria-label="Fechar">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-    </button>
-    <div class="trailer-wrap" id="trailerWrap"></div>
-  </div>
-</div>
 
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
@@ -1686,7 +1632,7 @@ function getSeriesYear(s) {
   return '';
 }
 
-let pendingTmdb = null; // {tmdb_id, trailer_url, year} para anexar ao salvar
+let pendingTmdb = null; // {tmdb_id, year} para anexar ao salvar
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 
@@ -1707,23 +1653,6 @@ function mapTmdbGenres(genres) {
     if (name) mapped.add(name);
   });
   return Array.from(mapped);
-}
-
-function pickTrailerUrl(videos) {
-  const list = (videos && videos.results) || [];
-  if (!list.length) return null;
-  const score = (v) => {
-    if (v.site !== 'YouTube') return -1;
-    if (v.type === 'Trailer' && v.official) return 4;
-    if (v.type === 'Trailer') return 3;
-    if (v.type === 'Teaser' && v.official) return 2;
-    if (v.type === 'Teaser') return 1;
-    return 0;
-  };
-  const sorted = [...list].sort((a,b) => score(b) - score(a));
-  const best = sorted[0];
-  if (!best || best.site !== 'YouTube' || score(best) <= 0) return null;
-  return `https://www.youtube.com/embed/${best.key}`;
 }
 
 async function tmdbSearch(query) {
@@ -1798,33 +1727,10 @@ async function selectTmdbResult(tmdbId) {
   const spinner = document.getElementById('tmdbSearchSpinner');
   spinner.classList.add('visible');
   try {
-    // Tenta em pt-BR. Se não houver trailer, refaz em en-US para buscar trailer.
-    const urlPt = `${TMDB_BASE}/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}&append_to_response=videos`;
+    const urlPt = `${TMDB_BASE}/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}`;
     const res = await fetch(urlPt);
     if (!res.ok) throw new Error('TMDB details failed');
     const d = await res.json();
-
-    let trailer = pickTrailerUrl(d.videos);
-    // Fallback: se não achou trailer em pt-BR, buscar vídeos em en-US
-    if (!trailer) {
-      try {
-        const resEn = await fetch(`${TMDB_BASE}/tv/${tmdbId}/videos?api_key=${TMDB_API_KEY}&language=en-US`);
-        if (resEn.ok) {
-          const videosEn = await resEn.json();
-          trailer = pickTrailerUrl(videosEn);
-        }
-      } catch (_) { /* ignora */ }
-    }
-    // Último fallback: buscar vídeos sem filtro de idioma
-    if (!trailer) {
-      try {
-        const resAny = await fetch(`${TMDB_BASE}/tv/${tmdbId}/videos?api_key=${TMDB_API_KEY}`);
-        if (resAny.ok) {
-          const videosAny = await resAny.json();
-          trailer = pickTrailerUrl(videosAny);
-        }
-      } catch (_) { /* ignora */ }
-    }
 
     // Nome
     document.getElementById('inputName').value = d.name || '';
@@ -1856,34 +1762,18 @@ async function selectTmdbResult(tmdbId) {
       showPosterPreview(poster);
     }
 
-    pendingTmdb = { tmdb_id: d.id, trailer_url: trailer, year: (d.first_air_date || '').slice(0,4) || null };
+    pendingTmdb = { tmdb_id: d.id, year: (d.first_air_date || '').slice(0,4) || null };
 
     document.getElementById('tmdbSearchInput').value = '';
     box.classList.remove('visible');
 
-    const msg = trailer
-      ? 'Dados importados do TMDB · trailer disponível!'
-      : 'Dados importados do TMDB. Ajuste o que precisar.';
-    showToast(msg, 'success');
+    showToast('Dados importados do TMDB. Ajuste o que precisar.', 'success');
   } catch (e) {
     console.error(e);
     showToast('Erro ao importar do TMDB.', 'error');
   } finally {
     spinner.classList.remove('visible');
   }
-}
-
-// ── TRAILER MODAL ──
-function openTrailerModal(url) {
-  const wrap = document.getElementById('trailerWrap');
-  const sep = url.includes('?') ? '&' : '?';
-  wrap.innerHTML = `<iframe src="${url}${sep}autoplay=1&rel=0" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
-  openModal('trailerModal');
-}
-
-function closeTrailerModal() {
-  closeModal('trailerModal');
-  document.getElementById('trailerWrap').innerHTML = '';
 }
 
 // ── SUPABASE ──
@@ -2416,16 +2306,7 @@ function openDetail(id) {
       ${synopsisHtml}
     </div>`;
 
-  const tmdbInfo = tmdbCache[s.id];
-  const trailerBtn = (tmdbInfo && tmdbInfo.trailer_url)
-    ? `<button class="btn btn-trailer" style="flex:1;justify-content:center" onclick="openTrailerModal('${tmdbInfo.trailer_url}')">
-         <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="0"><path d="M8 5v14l11-7z"/></svg>
-         Trailer
-       </button>`
-    : '';
-
   document.getElementById('detailFooter').innerHTML = `
-    ${trailerBtn}
     <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="openEditModal('${s.id}')">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       Editar
@@ -2498,10 +2379,6 @@ function escHtml(str) {
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    if (document.getElementById('trailerModal').classList.contains('open')) {
-      closeTrailerModal();
-      return;
-    }
     ['detailModal','formModal','confirmModal'].forEach(id => {
       if (document.getElementById(id).classList.contains('open')) closeModal(id);
     });
@@ -2518,7 +2395,7 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
 
   // Não atrapalhar se algum modal estiver aberto
-  const anyModalOpen = ['formModal','detailModal','confirmModal','trailerModal']
+  const anyModalOpen = ['formModal','detailModal','confirmModal']
     .some(id => document.getElementById(id).classList.contains('open'));
   if (anyModalOpen) return;
 
