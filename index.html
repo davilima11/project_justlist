@@ -560,6 +560,14 @@
     .badge-platform[data-platform="iQIYI"]        { background: rgba(0,190,6,0.18);    color: #4be066; }
     .badge-platform[data-platform="WeTV"]         { background: rgba(255,109,0,0.20);  color: #ffa05c; }
     .badge-platform[data-platform="Apple TV+"]    { background: rgba(255,255,255,0.10); color: #f0f0f0; }
+    .badge-platform[data-platform="Max"]          { background: rgba(84,69,255,0.20);  color: #9c91ff; }
+    .badge-platform[data-platform="Globoplay"]   { background: rgba(255,72,72,0.18);  color: #ff7676; }
+    .badge-platform[data-platform="Paramount+"]  { background: rgba(0,100,255,0.20);  color: #6ea5ff; }
+    .badge-platform[data-platform="Crunchyroll"] { background: rgba(244,117,33,0.20); color: #ff9a59; }
+    .badge-platform[data-platform="Pluto TV"]    { background: rgba(255,213,0,0.18);  color: #ffe05c; }
+    .badge-platform[data-platform="MUBI"]        { background: rgba(69,170,242,0.18); color: #73c8ff; }
+    .badge-platform[data-platform="Claro tv+"]   { background: rgba(229,0,43,0.18);   color: #ff607d; }
+    .badge-platform[data-platform="Looke"]       { background: rgba(143,70,255,0.18); color: #b997ff; }
     [data-theme="light"] .badge-platform[data-platform="Apple TV+"] { background: rgba(0,0,0,0.10); color: #111; }
 
     /* Year chip */
@@ -1184,6 +1192,12 @@
     }
 
     .detail-badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; border: 1px solid rgba(229,9,20,0.3); }
+    .detail-badge-year {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
     .detail-badge-content-type {
       background: rgba(185, 28, 28, 0.12);
       color: #fff;
@@ -1704,6 +1718,14 @@
         <span class="chip" data-filter="platform" data-value="iQIYI" onclick="toggleFilter(this)">iQIYI</span>
         <span class="chip" data-filter="platform" data-value="WeTV" onclick="toggleFilter(this)">WeTV</span>
         <span class="chip" data-filter="platform" data-value="Apple TV+" onclick="toggleFilter(this)">Apple TV+</span>
+        <span class="chip" data-filter="platform" data-value="Max" onclick="toggleFilter(this)">Max</span>
+        <span class="chip" data-filter="platform" data-value="Globoplay" onclick="toggleFilter(this)">Globoplay</span>
+        <span class="chip" data-filter="platform" data-value="Paramount+" onclick="toggleFilter(this)">Paramount+</span>
+        <span class="chip" data-filter="platform" data-value="Crunchyroll" onclick="toggleFilter(this)">Crunchyroll</span>
+        <span class="chip" data-filter="platform" data-value="Pluto TV" onclick="toggleFilter(this)">Pluto TV</span>
+        <span class="chip" data-filter="platform" data-value="MUBI" onclick="toggleFilter(this)">MUBI</span>
+        <span class="chip" data-filter="platform" data-value="Claro tv+" onclick="toggleFilter(this)">Claro tv+</span>
+        <span class="chip" data-filter="platform" data-value="Looke" onclick="toggleFilter(this)">Looke</span>
         <span class="chip" data-filter="platform" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
       </div>
     </div>
@@ -1887,9 +1909,18 @@
           <span class="platform-chip" data-value="iQIYI" onclick="togglePlatformChip(this)">iQIYI</span>
           <span class="platform-chip" data-value="WeTV" onclick="togglePlatformChip(this)">WeTV</span>
           <span class="platform-chip" data-value="Apple TV+" onclick="togglePlatformChip(this)">Apple TV+</span>
+          <span class="platform-chip" data-value="Max" onclick="togglePlatformChip(this)">Max</span>
+          <span class="platform-chip" data-value="Globoplay" onclick="togglePlatformChip(this)">Globoplay</span>
+          <span class="platform-chip" data-value="Paramount+" onclick="togglePlatformChip(this)">Paramount+</span>
+          <span class="platform-chip" data-value="Crunchyroll" onclick="togglePlatformChip(this)">Crunchyroll</span>
+          <span class="platform-chip" data-value="Pluto TV" onclick="togglePlatformChip(this)">Pluto TV</span>
+          <span class="platform-chip" data-value="MUBI" onclick="togglePlatformChip(this)">MUBI</span>
+          <span class="platform-chip" data-value="Claro tv+" onclick="togglePlatformChip(this)">Claro tv+</span>
+          <span class="platform-chip" data-value="Looke" onclick="togglePlatformChip(this)">Looke</span>
           <span class="platform-chip" data-value="Outros" onclick="togglePlatformChip(this)">Outros</span>
         </div>
-        <div style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas.</div>
+        <div style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.</div>
+        <div id="tmdbPlatformStatus" style="display:none;margin-top:7px;font-size:11px;line-height:1.45"></div>
       </div>
 
       <div class="form-group">
@@ -2057,6 +2088,107 @@ function mapTmdbGenres(genres) {
   return Array.from(mapped);
 }
 
+// Normaliza os nomes usados pelo TMDB para os nomes exibidos no JustList.
+// Serviços ainda não conhecidos são mantidos com o nome retornado pelo TMDB.
+function mapTmdbProviderName(providerName) {
+  const original = String(providerName || '').trim();
+  const name = original.toLocaleLowerCase('pt-BR');
+  if (!name) return '';
+
+  if (name.includes('netflix')) return 'Netflix';
+  if (name.includes('amazon prime video') || name === 'prime video') return 'Prime Video';
+  if (name.includes('disney plus') || name === 'disney+') return 'Disney+';
+  if (name.includes('apple tv plus') || name === 'apple tv+') return 'Apple TV+';
+  if (name.includes('rakuten viki') || name === 'viki') return 'Viki';
+  if (name.includes('iqiyi')) return 'iQIYI';
+  if (name.includes('wetv')) return 'WeTV';
+  if (name === 'max' || name.includes('hbo max')) return 'Max';
+  if (name.includes('globoplay')) return 'Globoplay';
+  if (name.includes('paramount')) return 'Paramount+';
+  if (name.includes('crunchyroll')) return 'Crunchyroll';
+  if (name.includes('pluto tv')) return 'Pluto TV';
+  if (name === 'mubi' || name.includes('mubi')) return 'MUBI';
+  if (name.includes('claro')) return 'Claro tv+';
+  if (name.includes('looke')) return 'Looke';
+
+  return original;
+}
+
+function ensurePlatformOption(platform) {
+  const value = String(platform || '').trim();
+  if (!value) return;
+
+  const formContainer = document.getElementById('platformChips');
+  if (formContainer && !Array.from(formContainer.querySelectorAll('.platform-chip')).some(chip => chip.dataset.value === value)) {
+    const chip = document.createElement('span');
+    chip.className = 'platform-chip';
+    chip.dataset.value = value;
+    chip.textContent = value;
+    chip.addEventListener('click', () => togglePlatformChip(chip));
+    formContainer.appendChild(chip);
+  }
+
+  const filterContainer = document.getElementById('filterPlatform');
+  if (filterContainer && !Array.from(filterContainer.querySelectorAll('.chip')).some(chip => chip.dataset.value === value)) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.dataset.filter = 'platform';
+    chip.dataset.value = value;
+    chip.textContent = value;
+    chip.addEventListener('click', () => toggleFilter(chip));
+    filterContainer.appendChild(chip);
+  }
+}
+
+function syncPlatformOptionsFromSavedItems() {
+  series.forEach(item => getSeriesPlatforms(item).forEach(ensurePlatformOption));
+}
+
+function setTmdbPlatformStatus(message = '', state = 'info') {
+  const status = document.getElementById('tmdbPlatformStatus');
+  if (!status) return;
+  status.textContent = message;
+  status.style.display = message ? 'block' : 'none';
+  status.style.color = state === 'success'
+    ? '#4ade80'
+    : state === 'error'
+      ? '#f87171'
+      : 'var(--text-dim)';
+}
+
+async function fetchTmdbWatchPlatforms(tmdbId, contentType) {
+  const endpoint = contentType === 'movie' ? 'movie' : 'tv';
+  const response = await fetch(
+    `${TMDB_BASE}/${endpoint}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`
+  );
+  if (!response.ok) throw new Error('TMDB watch providers failed');
+
+  const data = await response.json();
+  const brazil = data.results && data.results.BR;
+  if (!brazil) return [];
+
+  // Não inclui aluguel e compra: apenas assinatura, gratuito e com anúncios.
+  const providers = [
+    ...(brazil.flatrate || []),
+    ...(brazil.free || []),
+    ...(brazil.ads || [])
+  ];
+
+  return [...new Set(
+    providers
+      .map(provider => mapTmdbProviderName(provider.provider_name))
+      .filter(Boolean)
+  )];
+}
+
+function applyTmdbPlatforms(platforms) {
+  if (!Array.isArray(platforms) || platforms.length === 0) return;
+  platforms.forEach(ensurePlatformOption);
+  document.querySelectorAll('.platform-chip').forEach(chip => {
+    chip.classList.toggle('selected', platforms.includes(chip.dataset.value));
+  });
+}
+
 // A coluna "platform" continua sendo texto no Supabase.
 // Para aceitar várias plataformas sem alterar o banco, novas séries são salvas como JSON.
 // Registros antigos com uma única plataforma também continuam compatíveis.
@@ -2214,9 +2346,18 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
 
   try {
     const urlPt = `${TMDB_BASE}/${endpoint}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}`;
-    const res = await fetch(urlPt);
-    if (!res.ok) throw new Error('TMDB details failed');
-    const d = await res.json();
+    setTmdbPlatformStatus('Buscando plataformas disponíveis no Brasil…');
+
+    const [detailsResult, providersResult] = await Promise.allSettled([
+      fetch(urlPt).then(response => {
+        if (!response.ok) throw new Error('TMDB details failed');
+        return response.json();
+      }),
+      fetchTmdbWatchPlatforms(tmdbId, normalizedType)
+    ]);
+
+    if (detailsResult.status !== 'fulfilled') throw detailsResult.reason;
+    const d = detailsResult.value;
 
     updateContentTypeFormUI(normalizedType, Boolean(editingId));
     document.getElementById('inputName').value = normalizedType === 'movie' ? (d.title || '') : (d.name || '');
@@ -2247,15 +2388,38 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
     }
 
     const date = normalizedType === 'movie' ? d.release_date : d.first_air_date;
+    const importedYear = Number.parseInt((date || '').slice(0, 4), 10);
     pendingTmdb = {
       tmdb_id: d.id,
-      year: (date || '').slice(0, 4) || null,
+      year: Number.isInteger(importedYear) ? importedYear : null,
       content_type: normalizedType
     };
 
+    let importedPlatforms = [];
+    if (providersResult.status === 'fulfilled') {
+      importedPlatforms = providersResult.value;
+      if (importedPlatforms.length > 0) {
+        applyTmdbPlatforms(importedPlatforms);
+        setTmdbPlatformStatus(
+          `${importedPlatforms.length} ${importedPlatforms.length === 1 ? 'plataforma encontrada' : 'plataformas encontradas'} no Brasil: ${importedPlatforms.join(', ')}.`,
+          'success'
+        );
+      } else {
+        setTmdbPlatformStatus('O TMDB não informou plataformas por assinatura ou gratuitas para o Brasil. Você ainda pode selecionar manualmente.');
+      }
+    } else {
+      console.warn('Não foi possível consultar as plataformas no TMDB:', providersResult.reason);
+      setTmdbPlatformStatus('Não foi possível consultar as plataformas agora. Você ainda pode selecionar manualmente.', 'error');
+    }
+
     document.getElementById('tmdbSearchInput').value = '';
     box.classList.remove('visible');
-    showToast(`Dados do ${normalizedType === 'movie' ? 'filme' : 'série'} importados do TMDB.`, 'success');
+    showToast(
+      importedPlatforms.length
+        ? `Dados e plataformas importados do TMDB.`
+        : `Dados do ${normalizedType === 'movie' ? 'filme' : 'série'} importados do TMDB.`,
+      'success'
+    );
   } catch (e) {
     console.error(e);
     showToast('Erro ao importar do TMDB.', 'error');
@@ -2289,12 +2453,12 @@ async function loadData() {
 
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
-    .select('id, name, content_type, type, genres, platform, synopsis, poster, created_at')
+    .select('id, name, content_type, type, genres, platform, synopsis, poster, year, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error(error);
-    showToast('Erro ao carregar séries e filmes do Supabase. Verifique se a coluna content_type foi criada.', 'error');
+    showToast('Erro ao carregar do Supabase. Verifique se as colunas content_type e year foram criadas.', 'error');
     series = [];
     return;
   }
@@ -2385,6 +2549,7 @@ function getContentCounts(items = series) {
 }
 
 function render() {
+  syncPlatformOptionsFromSavedItems();
   const grid = document.getElementById('seriesGrid');
   const filtered = getFiltered();
   const counts = getContentCounts(series);
@@ -2704,6 +2869,7 @@ function openAddModal(contentType = 'series') {
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
+  setTmdbPlatformStatus('');
   document.querySelectorAll('.genre-chip.selected').forEach(chip => chip.classList.remove('selected'));
   resetPosterUI();
   updateContentTypeFormUI(contentType, false);
@@ -2733,6 +2899,7 @@ function openEditModal(id) {
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
+  setTmdbPlatformStatus('');
 
   const genres = Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []);
   document.querySelectorAll('.genre-chip').forEach(chip => {
@@ -2781,6 +2948,15 @@ async function saveSeries() {
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
   if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
+  const existingItem = editingId
+    ? series.find(item => String(item.id) === String(editingId))
+    : null;
+  const importedYear = Number.parseInt(pendingTmdb && pendingTmdb.year, 10);
+  const savedYear = Number.parseInt(existingItem ? getSeriesYear(existingItem) : '', 10);
+  const year = Number.isInteger(importedYear)
+    ? importedYear
+    : (Number.isInteger(savedYear) ? savedYear : null);
+
   const payload = {
     name,
     content_type: contentType,
@@ -2788,7 +2964,8 @@ async function saveSeries() {
     genres,
     platform: serializePlatforms(platforms),
     synopsis,
-    poster: currentPosterData
+    poster: currentPosterData,
+    year
   };
 
   try {
@@ -2816,10 +2993,17 @@ async function saveSeries() {
     render();
   } catch (error) {
     console.error(error);
-    const missingColumn = String(error && (error.message || error.details || '')).includes('content_type');
-    showToast(missingColumn
-      ? 'Crie a coluna content_type no Supabase antes de salvar.'
-      : 'Erro ao salvar no Supabase.', 'error');
+    const errorText = String(error && (error.message || error.details || ''));
+    const missingContentType = errorText.includes('content_type');
+    const missingYear = errorText.includes('year');
+    showToast(
+      missingContentType
+        ? 'Crie a coluna content_type no Supabase antes de salvar.'
+        : missingYear
+          ? 'Crie a coluna year no Supabase antes de salvar o ano.'
+          : 'Erro ao salvar no Supabase.',
+      'error'
+    );
   }
 }
 
@@ -2954,6 +3138,7 @@ function openDetail(id, fromRandomDraw = false) {
   if (!s) return;
   const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
   const platforms = getSeriesPlatforms(s);
+  const detailYear = getSeriesYear(s);
 
   clearRandomDrawTimers();
   document.getElementById('detailTitle').textContent = fromRandomDraw ? `${getContentTypeLabel(s)} sorteado!` : s.name;
@@ -2994,6 +3179,7 @@ function openDetail(id, fromRandomDraw = false) {
       </div>` : ''}
       <h3 class="detail-title">${escHtml(s.name)}</h3>
       <div class="detail-badges">
+        ${detailYear ? `<span class="detail-badge detail-badge-year">${escHtml(detailYear)}</span>` : ''}
         ${getContentType(s) === 'series' && s.type ? `<span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>` : ''}
         ${platformBadges}
         ${genreBadges}
