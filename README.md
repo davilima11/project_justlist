@@ -34,16 +34,3 @@ const TMDB_API_KEY = '...';
 const SUPABASE_URL = '...';
 const SUPABASE_ANON_KEY = '...';
 ```
-
-## Observação sobre o trailer
-
-O trailer URL é salvo no `localStorage` do navegador. Isso significa que ele persiste no mesmo navegador, mas não sincroniza entre dispositivos. Para sincronizar entre dispositivos, adicione duas colunas opcionais na sua tabela `series` do Supabase:
-
-- `tmdb_id` (int8, nullable)
-- `trailer_url` (text, nullable)
-
-## Tecnologia
-
-- HTML, CSS e JavaScript puro (sem build/framework)
-- [Supabase](https://supabase.com) para armazenamento
-- [TMDB API](https://www.themoviedb.org/documentation/api) para metadados de séries
