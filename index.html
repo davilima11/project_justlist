@@ -533,8 +533,21 @@
     }
 
     .badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; }
-    .badge-content-type { background: rgba(99,102,241,0.18); color: #a5b4fc; }
-    .badge-content-type[data-content-type="movie"] { background: rgba(245,158,11,0.18); color: #fbbf24; }
+    .badge-content-type {
+      background: rgba(185, 28, 28, 0.22);
+      color: #fff;
+      border: 1px solid rgba(254, 202, 202, 0.24);
+      box-shadow: 0 1px 5px rgba(185, 28, 28, 0.1), 0 1px 4px rgba(0,0,0,0.18);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.28);
+    }
+    .badge-content-type[data-content-type="movie"] {
+      background: rgba(234, 88, 12, 0.2);
+      color: #fff;
+      border-color: rgba(253, 186, 116, 0.24);
+      box-shadow: 0 1px 5px rgba(234, 88, 12, 0.1), 0 1px 4px rgba(0,0,0,0.18);
+    }
     .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
     .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
 
@@ -574,11 +587,12 @@
 
     .card-poster-badges .badge-content-type {
       color: #fff;
-      background: rgba(79,70,229,0.88);
-      border: 1px solid rgba(255,255,255,0.18);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.32);
-      backdrop-filter: blur(7px);
-      -webkit-backdrop-filter: blur(7px);
+      background: rgba(185, 28, 28, 0.24);
+      border: 1px solid rgba(254, 202, 202, 0.26);
+      box-shadow: 0 2px 8px rgba(185, 28, 28, 0.12), 0 2px 8px rgba(0,0,0,0.24);
+      backdrop-filter: blur(9px);
+      -webkit-backdrop-filter: blur(9px);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.3);
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -586,7 +600,9 @@
 
     .card-poster-badges .badge-content-type[data-content-type="movie"] {
       color: #fff;
-      background: rgba(217,119,6,0.9);
+      background: rgba(234, 88, 12, 0.22);
+      border-color: rgba(253, 186, 116, 0.26);
+      box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12), 0 2px 8px rgba(0,0,0,0.24);
     }
 
     .card-poster-badges .badge-year {
@@ -1113,21 +1129,24 @@
       left: 14px;
       z-index: 3;
       color: #fff;
-      background: rgba(79,70,229,0.9);
-      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(185, 28, 28, 0.24);
+      border: 1px solid rgba(254, 202, 202, 0.28);
       border-radius: 6px;
       padding: 5px 10px;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      text-shadow: 0 1px 1px rgba(0,0,0,0.32);
+      box-shadow: 0 2px 10px rgba(185, 28, 28, 0.12), 0 2px 10px rgba(0,0,0,0.26);
+      backdrop-filter: blur(9px);
+      -webkit-backdrop-filter: blur(9px);
     }
 
     .detail-content-type-overlay[data-content-type="movie"] {
-      background: rgba(217,119,6,0.92);
+      background: rgba(234, 88, 12, 0.22);
+      border-color: rgba(253, 186, 116, 0.28);
+      box-shadow: 0 2px 10px rgba(234, 88, 12, 0.12), 0 2px 10px rgba(0,0,0,0.26);
     }
 
     .detail-poster-gradient {
@@ -1165,8 +1184,18 @@
     }
 
     .detail-badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; border: 1px solid rgba(229,9,20,0.3); }
-    .detail-badge-content-type { background: rgba(99,102,241,0.16); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
-    .detail-badge-content-type[data-content-type="movie"] { background: rgba(245,158,11,0.16); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+    .detail-badge-content-type {
+      background: rgba(185, 28, 28, 0.12);
+      color: #fff;
+      border: 1px solid rgba(254, 202, 202, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .detail-badge-content-type[data-content-type="movie"] {
+      background: rgba(234, 88, 12, 0.1);
+      color: #fff;
+      border-color: rgba(253, 186, 116, 0.2);
+    }
     .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
     .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
 
