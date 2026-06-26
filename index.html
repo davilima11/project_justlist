@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0d0d" />
-  <title>JustList</title>
+  <title>JustList — Séries e Filmes</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23E50914'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='18' fill='white'>J</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -533,6 +533,8 @@
     }
 
     .badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; }
+    .badge-content-type { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+    .badge-content-type[data-content-type="movie"] { background: rgba(245,158,11,0.18); color: #fbbf24; }
     .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
     .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
 
@@ -1089,6 +1091,8 @@
     }
 
     .detail-badge-type { background: rgba(229,9,20,0.2); color: #ff6b6b; border: 1px solid rgba(229,9,20,0.3); }
+    .detail-badge-content-type { background: rgba(99,102,241,0.16); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+    .detail-badge-content-type[data-content-type="movie"] { background: rgba(245,158,11,0.16); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
     .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
     .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
 
@@ -1187,6 +1191,57 @@
     @keyframes randomDice {
       from { transform: rotate(-8deg) scale(0.96); }
       to { transform: rotate(8deg) scale(1.06); }
+    }
+
+    /* ── CONTENT TYPE CHOOSER ── */
+    .content-type-modal { max-width: 460px; }
+    .content-type-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 22px 24px 26px;
+    }
+    .content-type-option {
+      min-height: 150px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 20px 14px;
+      text-align: center;
+      transition: transform var(--transition), border-color var(--transition), background var(--transition);
+    }
+    .content-type-option:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+    }
+    .content-type-option-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .content-type-option.movie .content-type-option-icon {
+      background: rgba(245,158,11,0.14);
+      color: #f59e0b;
+    }
+    .content-type-option strong { font-size: 15px; }
+    .content-type-option span { font-size: 11px; line-height: 1.45; color: var(--text-dim); }
+
+    @media (max-width: 480px) {
+      .content-type-options { grid-template-columns: 1fr; }
+      .content-type-option { min-height: 116px; }
     }
 
     /* ── CONFIRM MODAL ── */
@@ -1462,7 +1517,7 @@
   </a>
   <div class="nav-search">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" id="searchInput" type="text" placeholder="Pesquisar séries..." autocomplete="off" />
+    <input class="search-input" id="searchInput" type="text" placeholder="Pesquisar séries e filmes..." autocomplete="off" />
     <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar pesquisa">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
@@ -1491,7 +1546,15 @@
     </div>
 
     <div class="filter-group">
-      <div class="filter-group-label">Tipo</div>
+      <div class="filter-group-label">Conteúdo</div>
+      <div class="filter-chips" id="filterContentType">
+        <span class="chip" data-filter="contentType" data-value="series" onclick="toggleFilter(this)">Séries</span>
+        <span class="chip" data-filter="contentType" data-value="movie" onclick="toggleFilter(this)">Filmes</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-label">Origem</div>
       <div class="filter-chips" id="filterType">
         <span class="chip" data-filter="type" data-value="Coreia" onclick="toggleFilter(this)">Coreia</span>
         <span class="chip" data-filter="type" data-value="China" onclick="toggleFilter(this)">China</span>
@@ -1563,11 +1626,11 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
           </button>
         </div>
-        <button class="btn btn-random" id="randomSeriesBtn" onclick="drawRandomSeries()" title="Sortear uma série entre os resultados atuais">
+        <button class="btn btn-random" id="randomSeriesBtn" onclick="drawRandomSeries()" title="Sortear um título entre os resultados atuais">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
           Sortear
         </button>
-        <button class="btn btn-primary" onclick="openAddModal()">
+        <button class="btn btn-primary" onclick="openContentTypeChooser()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Adicionar
         </button>
@@ -1583,11 +1646,40 @@
 
 <!-- ADD/EDIT MODAL moved inline -->
 
+
+<!-- ── CONTENT TYPE CHOOSER ── -->
+<div class="modal-overlay" id="contentTypeModal" onclick="handleOverlayClick(event, 'contentTypeModal')">
+  <div class="modal content-type-modal" role="dialog" aria-modal="true" aria-labelledby="contentTypeModalTitle">
+    <div class="modal-header">
+      <h2 class="modal-title" id="contentTypeModalTitle">O que deseja adicionar?</h2>
+      <button class="modal-close" onclick="closeModal('contentTypeModal')" aria-label="Fechar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="content-type-options">
+      <button class="content-type-option" onclick="startAddContent('series')">
+        <span class="content-type-option-icon">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m9 9 6 3-6 3V9Z"/></svg>
+        </span>
+        <strong>Adicionar série</strong>
+        <span>Pesquise séries de TV no TMDB ou preencha os dados manualmente.</span>
+      </button>
+      <button class="content-type-option movie" onclick="startAddContent('movie')">
+        <span class="content-type-option-icon">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/></svg>
+        </span>
+        <strong>Adicionar filme</strong>
+        <span>Pesquise filmes no TMDB e importe capa, sinopse e gêneros.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── ADD/EDIT MODAL ── -->
 <div class="modal-overlay" id="formModal" onclick="handleOverlayClick(event, 'formModal')">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="formModalTitle">
     <div class="modal-header">
-      <h2 class="modal-title" id="formModalTitle">Adicionar Série</h2>
+      <h2 class="modal-title" id="formModalTitle">Adicionar série</h2>
       <button class="modal-close" onclick="closeModal('formModal')" aria-label="Fechar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -1595,14 +1687,22 @@
     <div class="modal-body">
       <input type="hidden" id="editId" />
 
+      <div class="form-group">
+        <label class="form-label" for="inputContentType">Conteúdo <span style="color:var(--accent)">*</span></label>
+        <select class="form-select" id="inputContentType">
+          <option value="series">Série</option>
+          <option value="movie">Filme</option>
+        </select>
+      </div>
+
       <!-- TMDB SEARCH -->
       <div class="tmdb-search-block">
         <div class="tmdb-search-label">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Buscar no TMDB · preencher automaticamente
+          <span id="tmdbSearchLabelText">Buscar série no TMDB · preencher automaticamente</span>
         </div>
         <div class="tmdb-search-input-wrap">
-          <input class="tmdb-search-input" id="tmdbSearchInput" type="text" placeholder="Ex: Goblin, Crash Landing on You, The Untamed..." autocomplete="off" />
+          <input class="tmdb-search-input" id="tmdbSearchInput" type="text" placeholder="Ex: Goblin, Crash Landing on You..." autocomplete="off" />
           <div class="tmdb-search-spinner" id="tmdbSearchSpinner"></div>
         </div>
         <div class="tmdb-results" id="tmdbResults"></div>
@@ -1631,14 +1731,14 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="inputName">Nome da Série <span style="color:var(--accent)">*</span></label>
+        <label class="form-label" for="inputName"><span id="inputNameLabel">Nome da série</span> <span style="color:var(--accent)">*</span></label>
         <input class="form-input" id="inputName" type="text" placeholder="Ex: Alchemy of Souls" />
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="inputType">Tipo <span style="color:var(--accent)">*</span></label>
+      <div class="form-group" id="originFormGroup">
+        <label class="form-label" for="inputType">Origem <span style="color:var(--accent)">*</span></label>
         <select class="form-select" id="inputType">
-          <option value="">Selecione o tipo</option>
+          <option value="">Selecione a origem</option>
           <option value="Coreia">Coreia</option>
           <option value="China">China</option>
           <option value="Turquia">Turquia</option>
@@ -1691,7 +1791,7 @@
 
       <div class="form-group">
         <label class="form-label" for="inputSynopsis">Sinopse</label>
-        <textarea class="form-textarea" id="inputSynopsis" placeholder="Escreva uma breve descrição da série..."></textarea>
+        <textarea class="form-textarea" id="inputSynopsis" placeholder="Escreva uma breve descrição..."></textarea>
       </div>
     </div>
     <div class="modal-footer">
@@ -1725,7 +1825,7 @@
       <div class="confirm-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
       </div>
-      <div class="confirm-title">Excluir série?</div>
+      <div class="confirm-title" id="confirmTitle">Excluir item?</div>
       <div class="confirm-text" id="confirmText">Esta ação não pode ser desfeita.</div>
     </div>
     <div class="confirm-footer">
@@ -1740,14 +1840,14 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- FAB (mobile) -->
-<button class="fab" id="fab" onclick="openAddModal()" aria-label="Adicionar série">
+<button class="fab" id="fab" onclick="openContentTypeChooser()" aria-label="Adicionar série ou filme">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 
 <script>
 // ── STATE ──
 let series = [];
-let filters = { type: [], genre: [], platform: [] };
+let filters = { contentType: [], type: [], genre: [], platform: [] };
 let searchQuery = '';
 let currentView = 'grid';
 let editingId = null;
@@ -1769,15 +1869,31 @@ const TMDB_CACHE_KEY = 'justlist_tmdb_cache_v1';
 
 // Mapa de gêneros TMDB (TV) -> gêneros do JustList
 const TMDB_GENRE_MAP = {
-  10759: ['Ação'],                         // Action & Adventure
+  // Gêneros compartilhados por filmes e séries
+  28: ['Ação'],                          // Action
+  12: ['Ação'],                          // Adventure
+  16: ['Família'],                       // Animation
   35: ['Comédia'],
   80: ['Crime'],
+  99: ['Outros'],                        // Documentary
   18: ['Drama'],
   10751: ['Família'],
-  9648: ['Detetive'],                      // Mystery
-  10765: ['Fantasia', 'Ficção científica'], // Sci-Fi & Fantasy
-  10766: ['Drama'],                        // Soap
-  10768: ['Militar', 'Político'],          // War & Politics
+  14: ['Fantasia'],
+  36: ['Histórico'],
+  27: ['Terror'],
+  10402: ['Outros'],                     // Music
+  9648: ['Detetive'],                    // Mystery
+  10749: ['Romance'],
+  878: ['Ficção científica'],
+  53: ['Suspense'],
+  10752: ['Militar'],                    // War
+  37: ['Outros'],                        // Western
+
+  // Gêneros específicos de TV
+  10759: ['Ação'],                       // Action & Adventure
+  10765: ['Fantasia', 'Ficção científica'],
+  10766: ['Drama'],                      // Soap
+  10768: ['Militar', 'Político'],        // War & Politics
 };
 
 let tmdbCache = {};
@@ -1792,16 +1908,29 @@ const COUNTRY_FLAG = {
   'Outros': '🌍'
 };
 
-// Retorna o ano da série lendo do registro ou do cache TMDB
+function getContentType(item) {
+  const raw = String((item && (item.content_type || item.contentType)) || 'series').toLowerCase();
+  return raw === 'movie' || raw === 'filme' ? 'movie' : 'series';
+}
+
+function getContentTypeLabel(itemOrType) {
+  const type = typeof itemOrType === 'string'
+    ? getContentType({ content_type: itemOrType })
+    : getContentType(itemOrType);
+  return type === 'movie' ? 'Filme' : 'Série';
+}
+
+// Retorna o ano lendo do registro ou do cache TMDB.
 function getSeriesYear(s) {
   if (s && s.year) return String(s.year).slice(0, 4);
   if (s && s.first_air_date) return String(s.first_air_date).slice(0, 4);
+  if (s && s.release_date) return String(s.release_date).slice(0, 4);
   const cached = s && s.id ? tmdbCache[s.id] : null;
   if (cached && cached.year) return String(cached.year).slice(0, 4);
   return '';
 }
 
-let pendingTmdb = null; // {tmdb_id, year} para anexar ao salvar
+let pendingTmdb = null; // {tmdb_id, year, content_type} para anexar ao salvar
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 
@@ -1861,6 +1990,38 @@ function serializePlatforms(platforms) {
   return JSON.stringify([...new Set(platforms.map(String).map(value => value.trim()).filter(Boolean))]);
 }
 
+function getFormContentType() {
+  const select = document.getElementById('inputContentType');
+  return select && select.value === 'movie' ? 'movie' : 'series';
+}
+
+function updateContentTypeFormUI(contentType, editing = false) {
+  const normalized = contentType === 'movie' ? 'movie' : 'series';
+  const isMovie = normalized === 'movie';
+  const select = document.getElementById('inputContentType');
+  const originGroup = document.getElementById('originFormGroup');
+  const originSelect = document.getElementById('inputType');
+  if (select) select.value = normalized;
+
+  // Filmes não exigem país/origem. Mantemos "Outros" internamente para
+  // compatibilidade com a coluna antiga `type` do Supabase.
+  if (originGroup) originGroup.style.display = isMovie ? 'none' : '';
+  if (isMovie && originSelect) originSelect.value = 'Outros';
+
+  document.getElementById('formModalTitle').textContent = `${editing ? 'Editar' : 'Adicionar'} ${isMovie ? 'filme' : 'série'}`;
+  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : 'Nome da série';
+  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : 'Ex: Alchemy of Souls';
+  document.getElementById('inputSynopsis').placeholder = isMovie
+    ? 'Escreva uma breve descrição do filme...'
+    : 'Escreva uma breve descrição da série...';
+  document.getElementById('tmdbSearchLabelText').textContent = isMovie
+    ? 'Buscar filme no TMDB · preencher automaticamente'
+    : 'Buscar série no TMDB · preencher automaticamente';
+  document.getElementById('tmdbSearchInput').placeholder = isMovie
+    ? 'Ex: Parasita, Duna, Interestelar...'
+    : 'Ex: Goblin, Crash Landing on You...';
+}
+
 async function tmdbSearch(query) {
   const resultsBox = document.getElementById('tmdbResults');
   const spinner = document.getElementById('tmdbSearchSpinner');
@@ -1868,9 +2029,13 @@ async function tmdbSearch(query) {
     resultsBox.classList.remove('visible');
     return;
   }
-  tmdbLastQuery = query;
+
+  const contentType = getFormContentType();
+  const endpoint = contentType === 'movie' ? 'movie' : 'tv';
+  tmdbLastQuery = `${contentType}:${query}`;
+  const requestKey = tmdbLastQuery;
   spinner.classList.add('visible');
-  // show skeleton rows
+
   const skelRow = `<div class="tmdb-skel-row">
     <div class="tmdb-skel-poster skeleton"></div>
     <div class="tmdb-skel-info">
@@ -1880,22 +2045,23 @@ async function tmdbSearch(query) {
   </div>`;
   resultsBox.innerHTML = skelRow.repeat(3);
   resultsBox.classList.add('visible');
+
   try {
-    const url = `${TMDB_BASE}/search/tv?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}&query=${encodeURIComponent(query)}&page=1&include_adult=false`;
+    const url = `${TMDB_BASE}/search/${endpoint}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}&query=${encodeURIComponent(query)}&page=1&include_adult=false`;
     const res = await fetch(url);
     if (!res.ok) throw new Error('TMDB request failed: ' + res.status);
     const data = await res.json();
-    if (query !== tmdbLastQuery) return; // resposta antiga
-    renderTmdbResults(data.results || []);
+    if (requestKey !== tmdbLastQuery) return;
+    renderTmdbResults(data.results || [], false, contentType);
   } catch (e) {
     console.error(e);
-    renderTmdbResults(null, true);
+    renderTmdbResults(null, true, contentType);
   } finally {
     spinner.classList.remove('visible');
   }
 }
 
-function renderTmdbResults(results, hasError) {
+function renderTmdbResults(results, hasError, contentType = getFormContentType()) {
   const box = document.getElementById('tmdbResults');
   if (hasError) {
     box.innerHTML = `<div class="tmdb-empty">Erro ao buscar no TMDB. Verifique sua conexão.</div>`;
@@ -1907,73 +2073,86 @@ function renderTmdbResults(results, hasError) {
     box.classList.add('visible');
     return;
   }
+
+  const isMovie = contentType === 'movie';
   const placeholder = `<div class="tmdb-result-poster-placeholder">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
   </div>`;
+
   box.innerHTML = results.slice(0, 8).map(r => {
-    const year = r.first_air_date ? r.first_air_date.slice(0, 4) : '—';
-    const country = (r.origin_country || []).join(', ') || '—';
-    const original = r.original_name && r.original_name !== r.name ? ' · ' + escHtml(r.original_name) : '';
+    const name = isMovie ? (r.title || r.original_title || '') : (r.name || r.original_name || '');
+    const originalName = isMovie ? r.original_title : r.original_name;
+    const date = isMovie ? r.release_date : r.first_air_date;
+    const year = date ? date.slice(0, 4) : '—';
+    const country = !isMovie && Array.isArray(r.origin_country) && r.origin_country.length
+      ? ` · ${r.origin_country.join(', ')}`
+      : '';
+    const original = originalName && originalName !== name ? ` · ${escHtml(originalName)}` : '';
     const posterHtml = r.poster_path
       ? `<img class="tmdb-result-poster" src="${TMDB_IMG_THUMB}${r.poster_path}" alt="" loading="lazy" />`
       : placeholder;
-    return `<div class="tmdb-result" onclick="selectTmdbResult(${r.id})">
+    return `<div class="tmdb-result" onclick="selectTmdbResult(${r.id}, '${contentType}')">
       ${posterHtml}
       <div class="tmdb-result-info">
-        <div class="tmdb-result-name">${escHtml(r.name)}</div>
-        <div class="tmdb-result-meta">${year} · ${escHtml(country)}${original}</div>
+        <div class="tmdb-result-name">${escHtml(name)}</div>
+        <div class="tmdb-result-meta">${year} · ${isMovie ? 'Filme' : 'Série'}${country}${original}</div>
       </div>
     </div>`;
   }).join('');
   box.classList.add('visible');
 }
 
-async function selectTmdbResult(tmdbId) {
+async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
   const box = document.getElementById('tmdbResults');
   const spinner = document.getElementById('tmdbSearchSpinner');
+  const normalizedType = contentType === 'movie' ? 'movie' : 'series';
+  const endpoint = normalizedType === 'movie' ? 'movie' : 'tv';
   spinner.classList.add('visible');
+
   try {
-    const urlPt = `${TMDB_BASE}/tv/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}`;
+    const urlPt = `${TMDB_BASE}/${endpoint}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}`;
     const res = await fetch(urlPt);
     if (!res.ok) throw new Error('TMDB details failed');
     const d = await res.json();
 
-    // Nome
-    document.getElementById('inputName').value = d.name || '';
+    updateContentTypeFormUI(normalizedType, Boolean(editingId));
+    document.getElementById('inputName').value = normalizedType === 'movie' ? (d.title || '') : (d.name || '');
 
-    // Tipo (país)
-    const typeMapped = mapTmdbCountry(d.origin_country);
-    if (typeMapped) {
-      const typeSelect = document.getElementById('inputType');
-      if (Array.from(typeSelect.options).some(o => o.value === typeMapped)) {
-        typeSelect.value = typeMapped;
-      } else {
-        typeSelect.value = 'Outros';
+    // A origem é preenchida apenas para séries. Filmes não exibem nem exigem esse campo.
+    if (normalizedType === 'series') {
+      const countryCodes = d.origin_country || [];
+      const typeMapped = mapTmdbCountry(countryCodes);
+      if (typeMapped) {
+        const typeSelect = document.getElementById('inputType');
+        typeSelect.value = Array.from(typeSelect.options).some(option => option.value === typeMapped)
+          ? typeMapped
+          : 'Outros';
       }
     }
 
-    // Sinopse
     document.getElementById('inputSynopsis').value = d.overview || '';
 
-    // Gêneros mapeados
     const mappedGenres = mapTmdbGenres(d.genres || []);
-    document.querySelectorAll('.genre-chip').forEach(c => {
-      c.classList.toggle('selected', mappedGenres.includes(c.dataset.value));
+    document.querySelectorAll('.genre-chip').forEach(chip => {
+      chip.classList.toggle('selected', mappedGenres.includes(chip.dataset.value));
     });
 
-    // Poster
     if (d.poster_path) {
       const poster = `${TMDB_IMG_POSTER}${d.poster_path}`;
       currentPosterData = poster;
       showPosterPreview(poster);
     }
 
-    pendingTmdb = { tmdb_id: d.id, year: (d.first_air_date || '').slice(0,4) || null };
+    const date = normalizedType === 'movie' ? d.release_date : d.first_air_date;
+    pendingTmdb = {
+      tmdb_id: d.id,
+      year: (date || '').slice(0, 4) || null,
+      content_type: normalizedType
+    };
 
     document.getElementById('tmdbSearchInput').value = '';
     box.classList.remove('visible');
-
-    showToast('Dados importados do TMDB. Ajuste o que precisar.', 'success');
+    showToast(`Dados do ${normalizedType === 'movie' ? 'filme' : 'série'} importados do TMDB.`, 'success');
   } catch (e) {
     console.error(e);
     showToast('Erro ao importar do TMDB.', 'error');
@@ -2007,12 +2186,12 @@ async function loadData() {
 
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
-    .select('id, name, type, genres, platform, synopsis, poster, created_at')
+    .select('id, name, content_type, type, genres, platform, synopsis, poster, created_at')
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error(error);
-    showToast('Erro ao carregar séries do Supabase.', 'error');
+    showToast('Erro ao carregar séries e filmes do Supabase. Verifique se a coluna content_type foi criada.', 'error');
     series = [];
     return;
   }
@@ -2022,8 +2201,8 @@ async function loadData() {
 
 async function insertSeries(item) {
   if (!supabaseClient) {
-    series.push(item);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(series));
+    // A lista em memória é atualizada por saveSeries depois do retorno.
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([item, ...series]));
     return item;
   }
 
@@ -2095,40 +2274,50 @@ function renderSkeletons(count = 12) {
   return Array(count).fill(skel).join('');
 }
 
+function getContentCounts(items = series) {
+  return items.reduce((counts, item) => {
+    counts[getContentType(item)] += 1;
+    return counts;
+  }, { series: 0, movie: 0 });
+}
+
 function render() {
   const grid = document.getElementById('seriesGrid');
   const filtered = getFiltered();
+  const counts = getContentCounts(series);
 
-  // Atualiza o botão de sorteio de acordo com os resultados atuais
   const randomBtn = document.getElementById('randomSeriesBtn');
   if (randomBtn) {
     randomBtn.disabled = isLoading;
     randomBtn.title = isLoading
-      ? 'Aguarde o carregamento das séries'
+      ? 'Aguarde o carregamento da lista'
       : filtered.length > 0
-        ? `Sortear entre ${filtered.length} ${filtered.length === 1 ? 'série' : 'séries'} dos resultados atuais`
-        : 'Nenhuma série disponível nos resultados atuais';
+        ? `Sortear entre ${filtered.length} ${filtered.length === 1 ? 'título' : 'títulos'} dos resultados atuais`
+        : 'Nenhum título disponível nos resultados atuais';
   }
 
-  // Update count
-  document.getElementById('navCount').textContent =
-    isLoading ? '' :
-    series.length === 0 ? '' :
-    series.length === 1 ? '1 série' : `${series.length} séries`;
+  if (isLoading || series.length === 0) {
+    document.getElementById('navCount').textContent = '';
+  } else {
+    const parts = [];
+    if (counts.series) parts.push(`${counts.series} ${counts.series === 1 ? 'série' : 'séries'}`);
+    if (counts.movie) parts.push(`${counts.movie} ${counts.movie === 1 ? 'filme' : 'filmes'}`);
+    document.getElementById('navCount').textContent = parts.join(' · ');
+  }
 
-  // Results info
   const info = document.getElementById('resultsInfo');
+  const hasFilters = searchQuery || filters.contentType.length || filters.type.length || filters.genre.length || filters.platform.length;
   if (isLoading) {
     info.innerHTML = '<span style="opacity:.6">Carregando...</span>';
-  } else if (searchQuery || filters.type.length || filters.genre.length || filters.platform.length) {
-    info.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${series.length}</strong> séries`;
+  } else if (hasFilters) {
+    info.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${series.length}</strong> títulos`;
   } else {
-    info.innerHTML = series.length > 0 ? `<strong>${series.length}</strong> ${series.length === 1 ? 'série cadastrada' : 'séries cadastradas'}` : '';
+    info.innerHTML = series.length > 0
+      ? `<strong>${series.length}</strong> ${series.length === 1 ? 'título cadastrado' : 'títulos cadastrados'}`
+      : '';
   }
 
   renderMobileActiveFilters();
-
-  // Grid
   grid.className = 'series-grid' + (currentView === 'list' ? ' list-view' : '');
 
   if (isLoading) {
@@ -2141,16 +2330,14 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
         <h3>Sua lista está vazia</h3>
-        <p>Comece adicionando uma série — você pode buscar pelo nome e o pôster, sinopse e gêneros são preenchidos automaticamente via TMDB.</p>
+        <p>Comece adicionando uma série ou um filme. O TMDB pode preencher automaticamente o pôster, a sinopse e os gêneros.</p>
         <div class="empty-actions">
-          <button class="btn btn-primary" onclick="openAddModal()">
+          <button class="btn btn-primary" onclick="openContentTypeChooser()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Adicionar primeira série
+            Adicionar primeiro título
           </button>
         </div>
-        <div class="kbd-hint">
-          Dica: pressione <span class="kbd">N</span> para adicionar rápido
-        </div>
+        <div class="kbd-hint">Dica: pressione <span class="kbd">N</span> para adicionar rápido</div>
       </div>`;
     return;
   }
@@ -2160,15 +2347,13 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
         <h3>Nenhum resultado</h3>
-        <p>Nenhuma série corresponde aos filtros ou pesquisa atual.</p>
-        <div class="empty-actions">
-          <button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button>
-        </div>
+        <p>Nenhuma série ou filme corresponde aos filtros ou à pesquisa atual.</p>
+        <div class="empty-actions"><button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button></div>
       </div>`;
     return;
   }
 
-  grid.innerHTML = filtered.map((s, i) => renderCard(s, i)).join('');
+  grid.innerHTML = filtered.map((item, index) => renderCard(item, index)).join('');
 }
 
 function renderCard(s, idx) {
@@ -2179,8 +2364,14 @@ function renderCard(s, idx) {
     ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="replaceBrokenCardPoster(this)" />`
     : createCardPosterPlaceholder(s.name);
 
-  const flag = COUNTRY_FLAG[s.type] || '';
+  const contentType = getContentType(s);
+  const contentTypeLabel = getContentTypeLabel(s);
+  const contentTypeBadge = `<span class="badge badge-content-type" data-content-type="${contentType}">${contentTypeLabel}</span>`;
+  const flag = contentType === 'series' ? (COUNTRY_FLAG[s.type] || '') : '';
   const flagSpan = flag ? `<span class="flag" aria-hidden="true">${flag}</span>` : '';
+  const originBadge = contentType === 'series' && s.type
+    ? `<span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>`
+    : '';
   const year = getSeriesYear(s);
   const yearBadgeGrid = year ? `<span class="badge badge-year">${year}</span>` : '';
   const yearBadgeMeta = year ? `<span class="badge badge-year">${year}</span>` : '';
@@ -2211,7 +2402,8 @@ function renderCard(s, idx) {
       <div class="card-body">
         <div class="card-title">${escHtml(s.name)}</div>
         <div class="card-meta">
-          <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
+          ${contentTypeBadge}
+          ${originBadge}
           ${yearBadgeMeta}
           ${genreBadges}
           ${platformBadges}
@@ -2241,7 +2433,8 @@ function renderCard(s, idx) {
     <div class="card-body">
       <div class="card-title">${escHtml(s.name)}</div>
       <div class="card-meta">
-        <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
+        ${contentTypeBadge}
+        ${originBadge}
         ${genreBadges}
         ${platformBadges}
       </div>
@@ -2259,7 +2452,9 @@ function getFiltered() {
       const q = searchQuery.toLowerCase();
       if (!s.name.toLowerCase().includes(q)) return false;
     }
-    if (filters.type.length && !filters.type.includes(s.type)) return false;
+    if (filters.contentType.length && !filters.contentType.includes(getContentType(s))) return false;
+    // O filtro de origem se aplica somente às séries.
+    if (filters.type.length && (getContentType(s) !== 'series' || !filters.type.includes(s.type))) return false;
     if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
     if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
     return true;
@@ -2271,14 +2466,14 @@ function toggleFilter(el) {
   const value = el.dataset.value;
   const arr = filters[filterKey];
 
-  // Type is single-select
-  if (filterKey === 'type') {
+  // Conteúdo e origem são filtros de seleção única.
+  if (filterKey === 'type' || filterKey === 'contentType') {
     if (arr.includes(value)) {
-      filters.type = [];
+      filters[filterKey] = [];
       el.classList.remove('active');
     } else {
-      filters.type = [value];
-      document.querySelectorAll('[data-filter="type"].active').forEach(c => c.classList.remove('active'));
+      filters[filterKey] = [value];
+      document.querySelectorAll(`[data-filter="${filterKey}"].active`).forEach(chip => chip.classList.remove('active'));
       el.classList.add('active');
     }
   } else {
@@ -2295,10 +2490,14 @@ function renderMobileActiveFilters() {
   const container = document.getElementById('mobileActiveFilters');
   if (!container) return;
 
-  const labels = { type: 'Tipo', genre: 'Gênero', platform: 'Plataforma' };
+  const labels = { contentType: 'Conteúdo', type: 'Origem', genre: 'Gênero', platform: 'Plataforma' };
   const active = [];
-  ['type', 'genre', 'platform'].forEach(filterKey => {
-    filters[filterKey].forEach(value => active.push({ filterKey, value }));
+  ['contentType', 'type', 'genre', 'platform'].forEach(filterKey => {
+    filters[filterKey].forEach(value => active.push({
+      filterKey,
+      value,
+      displayValue: filterKey === 'contentType' ? getContentTypeLabel(value) : value
+    }));
   });
 
   container.classList.toggle('visible', active.length > 0);
@@ -2307,9 +2506,9 @@ function renderMobileActiveFilters() {
     return;
   }
 
-  container.innerHTML = active.map(({ filterKey, value }) => `
-    <button class="mobile-filter-chip" data-filter="${filterKey}" data-value="${escHtml(value)}" onclick="removeMobileFilter(this)" aria-label="Remover filtro ${escHtml(labels[filterKey])}: ${escHtml(value)}">
-      <span>${escHtml(labels[filterKey])}: ${escHtml(value)}</span>
+  container.innerHTML = active.map(({ filterKey, value, displayValue }) => `
+    <button class="mobile-filter-chip" data-filter="${filterKey}" data-value="${escHtml(value)}" onclick="removeMobileFilter(this)" aria-label="Remover filtro ${escHtml(labels[filterKey])}: ${escHtml(displayValue)}">
+      <span>${escHtml(labels[filterKey])}: ${escHtml(displayValue)}</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>`).join('') + `
     <button class="mobile-filters-clear" onclick="clearFilters()">Limpar todos</button>`;
@@ -2329,7 +2528,7 @@ function removeMobileFilter(button) {
 }
 
 function clearFilters() {
-  filters = { type: [], genre: [], platform: [] };
+  filters = { contentType: [], type: [], genre: [], platform: [] };
   document.querySelectorAll('.chip.active').forEach(c => c.classList.remove('active'));
   updateFiltersClearBtn();
   render();
@@ -2348,7 +2547,7 @@ function clearAll() {
 }
 
 function updateFiltersClearBtn() {
-  const total = filters.type.length + filters.genre.length + filters.platform.length;
+  const total = filters.contentType.length + filters.type.length + filters.genre.length + filters.platform.length;
   document.getElementById('filtersClear').classList.toggle('visible', total > 0);
   const badge = document.getElementById('filterCountBadge');
   badge.textContent = total;
@@ -2382,56 +2581,68 @@ function handleOverlayClick(e, id) {
 }
 
 // ── ADD / EDIT MODAL ──
-function openAddModal() {
+function openContentTypeChooser() {
+  closeSidebar();
+  openModal('contentTypeModal');
+}
+
+function startAddContent(contentType) {
+  closeModal('contentTypeModal');
+  openAddModal(contentType);
+}
+
+function openAddModal(contentType = 'series') {
   editingId = null;
   currentPosterData = null;
   pendingTmdb = null;
-  document.getElementById('formModalTitle').textContent = 'Adicionar Série';
   document.getElementById('editId').value = '';
+  document.getElementById('inputContentType').value = contentType === 'movie' ? 'movie' : 'series';
   document.getElementById('inputName').value = '';
   document.getElementById('inputType').value = '';
-  document.querySelectorAll('.platform-chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.platform-chip.selected').forEach(chip => chip.classList.remove('selected'));
   document.getElementById('inputSynopsis').value = '';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
-  document.querySelectorAll('.genre-chip.selected').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.genre-chip.selected').forEach(chip => chip.classList.remove('selected'));
   resetPosterUI();
+  updateContentTypeFormUI(contentType, false);
   openModal('formModal');
   setTimeout(() => document.getElementById('tmdbSearchInput').focus(), 100);
 }
 
 function openEditModal(id) {
-  const s = series.find(x => x.id === id);
-  if (!s) return;
+  const item = series.find(entry => entry.id === id);
+  if (!item) return;
   editingId = id;
-  currentPosterData = s.poster || null;
+  currentPosterData = item.poster || null;
   pendingTmdb = null;
 
-  document.getElementById('formModalTitle').textContent = 'Editar Série';
+  const contentType = getContentType(item);
   document.getElementById('editId').value = id;
-  document.getElementById('inputName').value = s.name;
-  document.getElementById('inputType').value = s.type;
-  const platforms = getSeriesPlatforms(s);
-  document.querySelectorAll('.platform-chip').forEach(c => {
-    c.classList.toggle('selected', platforms.includes(c.dataset.value));
+  document.getElementById('inputContentType').value = contentType;
+  document.getElementById('inputName').value = item.name;
+  document.getElementById('inputType').value = item.type;
+
+  const platforms = getSeriesPlatforms(item);
+  document.querySelectorAll('.platform-chip').forEach(chip => {
+    chip.classList.toggle('selected', platforms.includes(chip.dataset.value));
   });
-  document.getElementById('inputSynopsis').value = s.synopsis || '';
+
+  document.getElementById('inputSynopsis').value = item.synopsis || '';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
 
-  const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
-  document.querySelectorAll('.genre-chip').forEach(c => {
-    c.classList.toggle('selected', genres.includes(c.dataset.value));
+  const genres = Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []);
+  document.querySelectorAll('.genre-chip').forEach(chip => {
+    chip.classList.toggle('selected', genres.includes(chip.dataset.value));
   });
 
-  if (s.poster) {
-    showPosterPreview(s.poster);
-  } else {
-    resetPosterUI();
-  }
+  if (item.poster) showPosterPreview(item.poster);
+  else resetPosterUI();
 
+  updateContentTypeFormUI(contentType, true);
   closeModal('detailModal');
   openModal('formModal');
   setTimeout(() => document.getElementById('inputName').focus(), 100);
@@ -2439,40 +2650,57 @@ function openEditModal(id) {
 
 async function saveSeries() {
   const name = document.getElementById('inputName').value.trim();
-  const type = document.getElementById('inputType').value;
+  const contentType = getFormContentType();
+  const selectedType = document.getElementById('inputType').value;
+  const type = contentType === 'movie' ? 'Outros' : selectedType;
   const synopsis = document.getElementById('inputSynopsis').value.trim();
-  const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(c => c.dataset.value);
-  const platforms = Array.from(document.querySelectorAll('.platform-chip.selected')).map(c => c.dataset.value);
+  const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(chip => chip.dataset.value);
+  const platforms = Array.from(document.querySelectorAll('.platform-chip.selected')).map(chip => chip.dataset.value);
+  const contentLabel = getContentTypeLabel(contentType).toLowerCase();
 
-  if (!name) { showToast('Informe o nome da série.', 'error'); document.getElementById('inputName').focus(); return; }
+  if (!name) {
+    showToast(`Informe o nome do ${contentLabel}.`, 'error');
+    document.getElementById('inputName').focus();
+    return;
+  }
 
   const duplicate = series.find(item =>
-    String(item.id) !== String(editingId) && normalizeSeriesName(item.name) === normalizeSeriesName(name)
+    String(item.id) !== String(editingId) &&
+    getContentType(item) === contentType &&
+    normalizeSeriesName(item.name) === normalizeSeriesName(name)
   );
   if (duplicate) {
     const inputName = document.getElementById('inputName');
-    showToast(`“${duplicate.name}” já está na sua lista.`, 'error');
+    showToast(`“${duplicate.name}” já está na sua lista de ${contentType === 'movie' ? 'filmes' : 'séries'}.`, 'error');
     inputName.focus();
     inputName.select();
     return;
   }
 
-  if (!type) { showToast('Selecione o tipo da série.', 'error'); return; }
+  if (contentType === 'series' && !type) { showToast('Selecione a origem.', 'error'); return; }
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
   if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
-  const payload = { name, type, genres, platform: serializePlatforms(platforms), synopsis, poster: currentPosterData };
+  const payload = {
+    name,
+    content_type: contentType,
+    type,
+    genres,
+    platform: serializePlatforms(platforms),
+    synopsis,
+    poster: currentPosterData
+  };
 
   try {
     if (editingId) {
       const updated = await updateSeries(editingId, payload);
-      const idx = series.findIndex(x => x.id === editingId);
-      if (idx !== -1) series[idx] = updated;
+      const index = series.findIndex(item => item.id === editingId);
+      if (index !== -1) series[index] = updated;
       if (pendingTmdb) {
         tmdbCache[editingId] = pendingTmdb;
         saveTmdbCache();
       }
-      showToast('Série atualizada!', 'success');
+      showToast(`${getContentTypeLabel(contentType)} atualizado!`, 'success');
     } else {
       const created = await insertSeries({ id: uid(), ...payload });
       series.unshift(created);
@@ -2480,7 +2708,7 @@ async function saveSeries() {
         tmdbCache[created.id] = pendingTmdb;
         saveTmdbCache();
       }
-      showToast('Série adicionada!', 'success');
+      showToast(`${getContentTypeLabel(contentType)} adicionado!`, 'success');
     }
 
     pendingTmdb = null;
@@ -2488,7 +2716,10 @@ async function saveSeries() {
     render();
   } catch (error) {
     console.error(error);
-    showToast('Erro ao salvar no Supabase.', 'error');
+    const missingColumn = String(error && (error.message || error.details || '')).includes('content_type');
+    showToast(missingColumn
+      ? 'Crie a coluna content_type no Supabase antes de salvar.'
+      : 'Erro ao salvar no Supabase.', 'error');
   }
 }
 
@@ -2560,15 +2791,15 @@ function chooseRandomSeries(candidates, avoidId = null) {
 
 function drawRandomSeries() {
   if (isLoading) {
-    showToast('Aguarde as séries terminarem de carregar.', 'info');
+    showToast('Aguarde a lista terminar de carregar.', 'info');
     return;
   }
 
   const candidates = getFiltered();
   if (!candidates.length) {
     const message = series.length
-      ? 'Nenhuma série corresponde à pesquisa ou aos filtros atuais.'
-      : 'Adicione pelo menos uma série antes de sortear.';
+      ? 'Nenhum título corresponde à pesquisa ou aos filtros atuais.'
+      : 'Adicione pelo menos uma série ou filme antes de sortear.';
     showToast(message, 'error');
     return;
   }
@@ -2582,7 +2813,7 @@ function drawRandomSeries() {
       <div class="random-draw-icon">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
       </div>
-      <div class="random-draw-label">Escolhendo sua próxima série</div>
+      <div class="random-draw-label">Escolhendo o próximo título</div>
       <div class="random-draw-name" id="randomDrawName" aria-live="polite">Preparando o sorteio...</div>
       <div class="random-draw-note">O sorteio considera a pesquisa e os filtros selecionados.</div>
     </div>`;
@@ -2605,7 +2836,7 @@ function drawRandomSeries() {
       lastRandomSeriesId = selected.id;
       randomDrawTimers.push(setTimeout(() => {
         openDetail(selected.id, true);
-        showToast(`A série sorteada foi: ${selected.name}`, 'success');
+        showToast(`${getContentTypeLabel(selected)} sorteado: ${selected.name}`, 'success');
       }, 260));
       return;
     }
@@ -2625,7 +2856,7 @@ function openDetail(id, fromRandomDraw = false) {
   const platforms = getSeriesPlatforms(s);
 
   clearRandomDrawTimers();
-  document.getElementById('detailTitle').textContent = fromRandomDraw ? 'Série sorteada!' : s.name;
+  document.getElementById('detailTitle').textContent = fromRandomDraw ? `${getContentTypeLabel(s)} sorteado!` : s.name;
 
   const posterHtml = s.poster
     ? `<div class="detail-poster-wrap">
@@ -2655,7 +2886,8 @@ function openDetail(id, fromRandomDraw = false) {
       </div>` : ''}
       <h3 class="detail-title">${escHtml(s.name)}</h3>
       <div class="detail-badges">
-        <span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>
+        <span class="detail-badge detail-badge-content-type" data-content-type="${getContentType(s)}">${getContentTypeLabel(s)}</span>
+        ${getContentType(s) === 'series' && s.type ? `<span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>` : ''}
         ${platformBadges}
         ${genreBadges}
       </div>
@@ -2687,18 +2919,20 @@ function confirmDelete(id) {
   const s = series.find(x => x.id === id);
   if (!s) return;
   deleteTargetId = id;
+  document.getElementById('confirmTitle').textContent = `Excluir ${getContentTypeLabel(s).toLowerCase()}?`;
   document.getElementById('confirmText').textContent = `Tem certeza que deseja excluir "${s.name}"? Esta ação não pode ser desfeita.`;
   document.getElementById('confirmDeleteBtn').onclick = () => deleteSeries(id);
   openModal('confirmModal');
 }
 
 async function deleteSeries(id) {
+  const item = series.find(entry => entry.id === id);
   try {
     await removeSeriesFromDb(id);
-    series = series.filter(x => x.id !== id);
+    series = series.filter(entry => entry.id !== id);
     if (tmdbCache[id]) { delete tmdbCache[id]; saveTmdbCache(); }
     closeModal('confirmModal');
-    showToast('Série excluída.', 'info');
+    showToast(getContentType(item) === 'movie' ? 'Filme excluído.' : 'Série excluída.', 'info');
     render();
   } catch (error) {
     console.error(error);
@@ -2783,7 +3017,7 @@ function escHtml(str) {
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    ['detailModal','formModal','confirmModal'].forEach(id => {
+    ['detailModal','formModal','confirmModal','contentTypeModal'].forEach(id => {
       if (document.getElementById(id).classList.contains('open')) closeModal(id);
     });
     closeSidebar();
@@ -2810,11 +3044,25 @@ document.addEventListener('keydown', e => {
     inp.select();
   } else if (e.key === 'n' || e.key === 'N') {
     e.preventDefault();
-    openAddModal();
+    openContentTypeChooser();
   } else if (e.key === 'r' || e.key === 'R') {
     e.preventDefault();
     drawRandomSeries();
   }
+});
+
+// ── CONTENT TYPE INPUT ──
+document.getElementById('inputContentType').addEventListener('change', event => {
+  // Ao trocar de filme para série, peça uma origem válida em vez de manter
+  // o valor interno usado pelos filmes.
+  if (event.target.value === 'series') {
+    document.getElementById('inputType').value = '';
+  }
+  pendingTmdb = null;
+  tmdbLastQuery = '';
+  document.getElementById('tmdbSearchInput').value = '';
+  document.getElementById('tmdbResults').classList.remove('visible');
+  updateContentTypeFormUI(event.target.value, Boolean(editingId));
 });
 
 // ── TMDB SEARCH INPUT ──
