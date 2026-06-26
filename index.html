@@ -370,6 +370,50 @@
     }
     .results-info strong { color: var(--text-muted); }
 
+    /* ── ACTIVE FILTERS (MOBILE ONLY) ── */
+    .mobile-active-filters {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      margin: -4px 0 16px;
+      overflow-x: auto;
+      padding: 2px 0 5px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .mobile-active-filters::-webkit-scrollbar { display: none; }
+
+    .mobile-filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(229,9,20,0.35);
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 999px;
+      padding: 6px 9px 6px 11px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mobile-filter-chip:active { transform: scale(0.97); }
+    .mobile-filter-chip svg { flex-shrink: 0; }
+
+    .mobile-filters-clear {
+      flex: 0 0 auto;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 4px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
     .view-toggle {
       display: flex;
       gap: 4px;
@@ -443,8 +487,20 @@
       color: var(--text-dim);
     }
 
-    .card-poster-placeholder svg { opacity: 0.4; }
-    .card-poster-placeholder span { font-size: 11px; opacity: 0.5; }
+    .card-poster-placeholder svg { opacity: 0.4; flex-shrink: 0; }
+    .card-poster-placeholder span { font-size: 11px; opacity: 0.72; }
+    .poster-fallback-title {
+      width: 82%;
+      max-width: 150px;
+      text-align: center;
+      line-height: 1.35;
+      font-weight: 600;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
 
     .card-body {
       padding: 10px 12px 12px;
@@ -877,13 +933,15 @@
       line-height: 1.5;
     }
 
-    .genre-chips {
+    .genre-chips,
+    .platform-chips {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
     }
 
-    .genre-chip {
+    .genre-chip,
+    .platform-chip {
       padding: 5px 12px;
       border-radius: 20px;
       font-size: 12px;
@@ -895,8 +953,10 @@
       transition: all var(--transition);
       user-select: none;
     }
-    .genre-chip:hover { border-color: #444; color: var(--text); }
-    .genre-chip.selected {
+    .genre-chip:hover,
+    .platform-chip:hover { border-color: #444; color: var(--text); }
+    .genre-chip.selected,
+    .platform-chip.selected {
       background: var(--accent-dim);
       border-color: var(--accent);
       color: var(--accent);
@@ -981,9 +1041,18 @@
       height: 200px;
       background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 10px;
+      padding: 24px;
       color: var(--text-dim);
+    }
+    .detail-poster-placeholder .poster-fallback-title {
+      max-width: 300px;
+      font-size: 14px;
+      color: var(--text-muted);
+      opacity: 0.9;
     }
 
     .detail-poster-gradient {
@@ -1344,6 +1413,7 @@
       .sidebar-overlay.open { display: block; }
 
       .filter-toggle-btn { display: flex; }
+      .mobile-active-filters.visible { display: flex; }
 
       .content { padding: 16px 12px 90px; }
       .series-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
@@ -1450,6 +1520,9 @@
         <span class="chip" data-filter="genre" data-value="Histórico" onclick="toggleFilter(this)">Histórico</span>
         <span class="chip" data-filter="genre" data-value="Médico" onclick="toggleFilter(this)">Médico</span>
         <span class="chip" data-filter="genre" data-value="Crime" onclick="toggleFilter(this)">Crime</span>
+        <span class="chip" data-filter="genre" data-value="Negócios" onclick="toggleFilter(this)">Negócios</span>
+        <span class="chip" data-filter="genre" data-value="Político" onclick="toggleFilter(this)">Político</span>
+        <span class="chip" data-filter="genre" data-value="Ficção científica" onclick="toggleFilter(this)">Ficção científica</span>
         <span class="chip" data-filter="genre" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
       </div>
     </div>
@@ -1500,6 +1573,8 @@
         </button>
       </div>
     </div>
+
+    <div class="mobile-active-filters" id="mobileActiveFilters" aria-label="Filtros ativos"></div>
 
     <!-- SERIES GRID -->
     <div class="series-grid" id="seriesGrid"></div>
@@ -1591,24 +1666,27 @@
           <span class="genre-chip" data-value="Histórico" onclick="toggleGenreChip(this)">Histórico</span>
           <span class="genre-chip" data-value="Médico" onclick="toggleGenreChip(this)">Médico</span>
           <span class="genre-chip" data-value="Crime" onclick="toggleGenreChip(this)">Crime</span>
+          <span class="genre-chip" data-value="Negócios" onclick="toggleGenreChip(this)">Negócios</span>
+          <span class="genre-chip" data-value="Político" onclick="toggleGenreChip(this)">Político</span>
+          <span class="genre-chip" data-value="Ficção científica" onclick="toggleGenreChip(this)">Ficção científica</span>
           <span class="genre-chip" data-value="Outros" onclick="toggleGenreChip(this)">Outros</span>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="inputPlatform">Plataforma <span style="color:var(--accent)">*</span></label>
-        <select class="form-select" id="inputPlatform">
-          <option value="">Selecione a plataforma</option>
-          <option value="Netflix">Netflix</option>
-          <option value="Disney+">Disney+</option>
-          <option value="Prime Video">Prime Video</option>
-          <option value="Viki">Viki</option>
-          <option value="Telegram">Telegram</option>
-          <option value="iQIYI">iQIYI</option>
-          <option value="WeTV">WeTV</option>
-          <option value="Apple TV+">Apple TV+</option>
-          <option value="Outros">Outros</option>
-        </select>
+        <label class="form-label">Plataformas <span style="color:var(--accent)">*</span></label>
+        <div class="platform-chips" id="platformChips">
+          <span class="platform-chip" data-value="Netflix" onclick="togglePlatformChip(this)">Netflix</span>
+          <span class="platform-chip" data-value="Disney+" onclick="togglePlatformChip(this)">Disney+</span>
+          <span class="platform-chip" data-value="Prime Video" onclick="togglePlatformChip(this)">Prime Video</span>
+          <span class="platform-chip" data-value="Viki" onclick="togglePlatformChip(this)">Viki</span>
+          <span class="platform-chip" data-value="Telegram" onclick="togglePlatformChip(this)">Telegram</span>
+          <span class="platform-chip" data-value="iQIYI" onclick="togglePlatformChip(this)">iQIYI</span>
+          <span class="platform-chip" data-value="WeTV" onclick="togglePlatformChip(this)">WeTV</span>
+          <span class="platform-chip" data-value="Apple TV+" onclick="togglePlatformChip(this)">Apple TV+</span>
+          <span class="platform-chip" data-value="Outros" onclick="togglePlatformChip(this)">Outros</span>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas.</div>
       </div>
 
       <div class="form-group">
@@ -1691,15 +1769,15 @@ const TMDB_CACHE_KEY = 'justlist_tmdb_cache_v1';
 
 // Mapa de gêneros TMDB (TV) -> gêneros do JustList
 const TMDB_GENRE_MAP = {
-  10759: 'Ação',         // Action & Adventure
-  35: 'Comédia',
-  80: 'Crime',
-  18: 'Drama',
-  10751: 'Família',
-  9648: 'Detetive',      // Mystery
-  10765: 'Fantasia',     // Sci-Fi & Fantasy
-  10766: 'Drama',        // Soap
-  10768: 'Militar',      // War & Politics
+  10759: ['Ação'],                         // Action & Adventure
+  35: ['Comédia'],
+  80: ['Crime'],
+  18: ['Drama'],
+  10751: ['Família'],
+  9648: ['Detetive'],                      // Mystery
+  10765: ['Fantasia', 'Ficção científica'], // Sci-Fi & Fantasy
+  10766: ['Drama'],                        // Soap
+  10768: ['Militar', 'Político'],          // War & Politics
 };
 
 let tmdbCache = {};
@@ -1740,10 +1818,47 @@ function mapTmdbGenres(genres) {
   const mapped = new Set();
   genres.forEach(g => {
     const id = typeof g === 'object' ? g.id : g;
-    const name = TMDB_GENRE_MAP[id];
-    if (name) mapped.add(name);
+    const names = TMDB_GENRE_MAP[id];
+    if (!names) return;
+    (Array.isArray(names) ? names : [names]).forEach(name => mapped.add(name));
   });
   return Array.from(mapped);
+}
+
+// A coluna "platform" continua sendo texto no Supabase.
+// Para aceitar várias plataformas sem alterar o banco, novas séries são salvas como JSON.
+// Registros antigos com uma única plataforma também continuam compatíveis.
+function getSeriesPlatforms(item) {
+  if (!item) return [];
+
+  if (Array.isArray(item.platforms)) {
+    return [...new Set(item.platforms.map(String).map(value => value.trim()).filter(Boolean))];
+  }
+
+  if (Array.isArray(item.platform)) {
+    return [...new Set(item.platform.map(String).map(value => value.trim()).filter(Boolean))];
+  }
+
+  const raw = typeof item.platform === 'string' ? item.platform.trim() : '';
+  if (!raw) return [];
+
+  if (raw.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return [...new Set(parsed.map(String).map(value => value.trim()).filter(Boolean))];
+      }
+    } catch (error) {
+      console.warn('Não foi possível interpretar as plataformas salvas:', error);
+    }
+  }
+
+  // Também reconhece listas antigas digitadas com vírgula, ponto e vírgula ou ||.
+  return [...new Set(raw.split(/\s*(?:\|\||,|;)\s*/).map(value => value.trim()).filter(Boolean))];
+}
+
+function serializePlatforms(platforms) {
+  return JSON.stringify([...new Set(platforms.map(String).map(value => value.trim()).filter(Boolean))]);
 }
 
 async function tmdbSearch(query) {
@@ -2011,6 +2126,8 @@ function render() {
     info.innerHTML = series.length > 0 ? `<strong>${series.length}</strong> ${series.length === 1 ? 'série cadastrada' : 'séries cadastradas'}` : '';
   }
 
+  renderMobileActiveFilters();
+
   // Grid
   grid.className = 'series-grid' + (currentView === 'list' ? ' list-view' : '');
 
@@ -2059,11 +2176,8 @@ function renderCard(s, idx) {
   const animStyle = `style="animation-delay:${delay}ms"`;
   const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
   const posterHtml = s.poster
-    ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.classList.add('loaded')" />`
-    : `<div class="card-poster-placeholder">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        <span>Sem poster</span>
-       </div>`;
+    ? `<img class="card-poster" src="${s.poster}" alt="${escHtml(s.name)}" loading="lazy" onload="this.classList.add('loaded')" onerror="replaceBrokenCardPoster(this)" />`
+    : createCardPosterPlaceholder(s.name);
 
   const flag = COUNTRY_FLAG[s.type] || '';
   const flagSpan = flag ? `<span class="flag" aria-hidden="true">${flag}</span>` : '';
@@ -2073,6 +2187,9 @@ function renderCard(s, idx) {
 
   const genreBadges = genres.slice(0, 2).map(g =>
     `<span class="badge badge-genre">${escHtml(g)}</span>`
+  ).join('');
+  const platformBadges = getSeriesPlatforms(s).map(platform =>
+    `<span class="badge badge-platform" data-platform="${escHtml(platform)}">${escHtml(platform)}</span>`
   ).join('');
 
   const hoverOverlay = currentView === 'grid' ? `
@@ -2097,7 +2214,7 @@ function renderCard(s, idx) {
           <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
           ${yearBadgeMeta}
           ${genreBadges}
-          <span class="badge badge-platform" data-platform="${escHtml(s.platform)}">${escHtml(s.platform)}</span>
+          ${platformBadges}
         </div>
       </div>
       <div class="card-actions">
@@ -2126,7 +2243,7 @@ function renderCard(s, idx) {
       <div class="card-meta">
         <span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>
         ${genreBadges}
-        <span class="badge badge-platform" data-platform="${escHtml(s.platform)}">${escHtml(s.platform)}</span>
+        ${platformBadges}
       </div>
     </div>
   </div>`;
@@ -2136,6 +2253,7 @@ function renderCard(s, idx) {
 function getFiltered() {
   return series.filter(s => {
     const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+    const platforms = getSeriesPlatforms(s);
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -2143,7 +2261,7 @@ function getFiltered() {
     }
     if (filters.type.length && !filters.type.includes(s.type)) return false;
     if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
-    if (filters.platform.length && !filters.platform.includes(s.platform)) return false;
+    if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
     return true;
   });
 }
@@ -2169,6 +2287,43 @@ function toggleFilter(el) {
     else arr.splice(idx, 1);
     el.classList.toggle('active', arr.includes(value));
   }
+  updateFiltersClearBtn();
+  render();
+}
+
+function renderMobileActiveFilters() {
+  const container = document.getElementById('mobileActiveFilters');
+  if (!container) return;
+
+  const labels = { type: 'Tipo', genre: 'Gênero', platform: 'Plataforma' };
+  const active = [];
+  ['type', 'genre', 'platform'].forEach(filterKey => {
+    filters[filterKey].forEach(value => active.push({ filterKey, value }));
+  });
+
+  container.classList.toggle('visible', active.length > 0);
+  if (active.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = active.map(({ filterKey, value }) => `
+    <button class="mobile-filter-chip" data-filter="${filterKey}" data-value="${escHtml(value)}" onclick="removeMobileFilter(this)" aria-label="Remover filtro ${escHtml(labels[filterKey])}: ${escHtml(value)}">
+      <span>${escHtml(labels[filterKey])}: ${escHtml(value)}</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>`).join('') + `
+    <button class="mobile-filters-clear" onclick="clearFilters()">Limpar todos</button>`;
+}
+
+function removeMobileFilter(button) {
+  const filterKey = button.dataset.filter;
+  const value = button.dataset.value;
+  if (!filters[filterKey]) return;
+
+  filters[filterKey] = filters[filterKey].filter(item => item !== value);
+  document.querySelectorAll(`.chip[data-filter="${filterKey}"]`).forEach(chip => {
+    if (chip.dataset.value === value) chip.classList.remove('active');
+  });
   updateFiltersClearBtn();
   render();
 }
@@ -2235,7 +2390,7 @@ function openAddModal() {
   document.getElementById('editId').value = '';
   document.getElementById('inputName').value = '';
   document.getElementById('inputType').value = '';
-  document.getElementById('inputPlatform').value = '';
+  document.querySelectorAll('.platform-chip.selected').forEach(c => c.classList.remove('selected'));
   document.getElementById('inputSynopsis').value = '';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
@@ -2257,7 +2412,10 @@ function openEditModal(id) {
   document.getElementById('editId').value = id;
   document.getElementById('inputName').value = s.name;
   document.getElementById('inputType').value = s.type;
-  document.getElementById('inputPlatform').value = s.platform;
+  const platforms = getSeriesPlatforms(s);
+  document.querySelectorAll('.platform-chip').forEach(c => {
+    c.classList.toggle('selected', platforms.includes(c.dataset.value));
+  });
   document.getElementById('inputSynopsis').value = s.synopsis || '';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
@@ -2282,16 +2440,28 @@ function openEditModal(id) {
 async function saveSeries() {
   const name = document.getElementById('inputName').value.trim();
   const type = document.getElementById('inputType').value;
-  const platform = document.getElementById('inputPlatform').value;
   const synopsis = document.getElementById('inputSynopsis').value.trim();
   const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(c => c.dataset.value);
+  const platforms = Array.from(document.querySelectorAll('.platform-chip.selected')).map(c => c.dataset.value);
 
   if (!name) { showToast('Informe o nome da série.', 'error'); document.getElementById('inputName').focus(); return; }
+
+  const duplicate = series.find(item =>
+    String(item.id) !== String(editingId) && normalizeSeriesName(item.name) === normalizeSeriesName(name)
+  );
+  if (duplicate) {
+    const inputName = document.getElementById('inputName');
+    showToast(`“${duplicate.name}” já está na sua lista.`, 'error');
+    inputName.focus();
+    inputName.select();
+    return;
+  }
+
   if (!type) { showToast('Selecione o tipo da série.', 'error'); return; }
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
-  if (!platform) { showToast('Selecione a plataforma.', 'error'); return; }
+  if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
-  const payload = { name, type, genres, platform, synopsis, poster: currentPosterData };
+  const payload = { name, type, genres, platform: serializePlatforms(platforms), synopsis, poster: currentPosterData };
 
   try {
     if (editingId) {
@@ -2368,6 +2538,10 @@ function resetPosterUI() {
 
 // ── GENRE CHIPS (form) ──
 function toggleGenreChip(el) {
+  el.classList.toggle('selected');
+}
+
+function togglePlatformChip(el) {
   el.classList.toggle('selected');
 }
 
@@ -2448,21 +2622,23 @@ function openDetail(id, fromRandomDraw = false) {
   const s = series.find(x => x.id === id);
   if (!s) return;
   const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
+  const platforms = getSeriesPlatforms(s);
 
   clearRandomDrawTimers();
   document.getElementById('detailTitle').textContent = fromRandomDraw ? 'Série sorteada!' : s.name;
 
   const posterHtml = s.poster
     ? `<div class="detail-poster-wrap">
-        <img class="detail-poster" src="${s.poster}" alt="${escHtml(s.name)}" />
+        <img class="detail-poster" src="${s.poster}" alt="${escHtml(s.name)}" onerror="replaceBrokenDetailPoster(this)" />
         <div class="detail-poster-gradient"></div>
        </div>`
-    : `<div class="detail-poster-placeholder">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:0.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-       </div>`;
+    : createDetailPosterPlaceholder(s.name);
 
   const genreBadges = genres.map(g =>
     `<span class="detail-badge detail-badge-genre">${escHtml(g)}</span>`
+  ).join('');
+  const platformBadges = platforms.map(platform =>
+    `<span class="detail-badge detail-badge-platform">${escHtml(platform)}</span>`
   ).join('');
 
   const synopsisHtml = s.synopsis
@@ -2480,7 +2656,7 @@ function openDetail(id, fromRandomDraw = false) {
       <h3 class="detail-title">${escHtml(s.name)}</h3>
       <div class="detail-badges">
         <span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>
-        <span class="detail-badge detail-badge-platform">${escHtml(s.platform)}</span>
+        ${platformBadges}
         ${genreBadges}
       </div>
       ${synopsisHtml}
@@ -2549,6 +2725,47 @@ function showToast(msg, type = 'info') {
 }
 
 // ── UTILS ──
+function normalizeSeriesName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+}
+
+function posterFallbackIcon(size = 28) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`;
+}
+
+function createCardPosterPlaceholder(name) {
+  return `<div class="card-poster-placeholder">
+    ${posterFallbackIcon(28)}
+    <span class="poster-fallback-title">${escHtml(name || 'Sem pôster')}</span>
+  </div>`;
+}
+
+function createDetailPosterPlaceholder(name) {
+  return `<div class="detail-poster-placeholder">
+    ${posterFallbackIcon(40)}
+    <span class="poster-fallback-title">${escHtml(name || 'Sem pôster')}</span>
+  </div>`;
+}
+
+function replaceBrokenCardPoster(img) {
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = createCardPosterPlaceholder(img.alt || 'Sem pôster');
+  const placeholder = wrapper.firstElementChild;
+  if (placeholder) img.replaceWith(placeholder);
+}
+
+function replaceBrokenDetailPoster(img) {
+  const wrap = img.closest('.detail-poster-wrap');
+  if (!wrap) return;
+  wrap.outerHTML = createDetailPosterPlaceholder(img.alt || 'Sem pôster');
+}
+
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
