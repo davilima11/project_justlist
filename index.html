@@ -220,6 +220,22 @@
     }
     .btn-danger:hover { background: rgba(255,68,68,0.1); }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-random {
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(124,58,237,0.24);
+    }
+    .btn-random:hover {
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      box-shadow: 0 6px 18px rgba(124,58,237,0.34);
+    }
+
     /* ── FAB — removed, button is now inline ── */
 
     /* ── LAYOUT: SIDEBAR + CONTENT ── */
@@ -1035,6 +1051,75 @@
       border-top: 1px solid var(--border);
     }
 
+    /* ── RANDOM SERIES DRAW ── */
+    .random-draw-body {
+      padding: 38px 24px 34px;
+      text-align: center;
+    }
+
+    .random-draw-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 20px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      box-shadow: 0 12px 30px rgba(124,58,237,0.32);
+      animation: randomDice 0.58s ease-in-out infinite alternate;
+    }
+
+    .random-draw-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #c084fc;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+    }
+
+    .random-draw-name {
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .random-draw-note {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--text-dim);
+    }
+
+    .random-result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(124,58,237,0.14);
+      border: 1px solid rgba(168,85,247,0.32);
+      color: #c084fc;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    @keyframes randomDice {
+      from { transform: rotate(-8deg) scale(0.96); }
+      to { transform: rotate(8deg) scale(1.06); }
+    }
+
     /* ── CONFIRM MODAL ── */
     .confirm-modal { max-width: 380px; }
     .confirm-body { padding: 24px; text-align: center; }
@@ -1405,6 +1490,10 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
           </button>
         </div>
+        <button class="btn btn-random" id="randomSeriesBtn" onclick="drawRandomSeries()" title="Sortear uma série entre os resultados atuais">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
+          Sortear
+        </button>
         <button class="btn btn-primary" onclick="openAddModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Adicionar
@@ -1587,6 +1676,8 @@ let editingId = null;
 let currentPosterData = null;
 let deleteTargetId = null;
 let isLoading = true;
+let lastRandomSeriesId = null;
+let randomDrawTimers = [];
 
 const STORAGE_KEY = 'justlist_series_v1';
 
@@ -1893,6 +1984,17 @@ function render() {
   const grid = document.getElementById('seriesGrid');
   const filtered = getFiltered();
 
+  // Atualiza o botão de sorteio de acordo com os resultados atuais
+  const randomBtn = document.getElementById('randomSeriesBtn');
+  if (randomBtn) {
+    randomBtn.disabled = isLoading;
+    randomBtn.title = isLoading
+      ? 'Aguarde o carregamento das séries'
+      : filtered.length > 0
+        ? `Sortear entre ${filtered.length} ${filtered.length === 1 ? 'série' : 'séries'} dos resultados atuais`
+        : 'Nenhuma série disponível nos resultados atuais';
+  }
+
   // Update count
   document.getElementById('navCount').textContent =
     isLoading ? '' :
@@ -2117,6 +2219,7 @@ function closeModal(id) {
   document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
   document.body.classList.remove('modal-open');
+  if (id === 'detailModal') clearRandomDrawTimers();
 }
 
 function handleOverlayClick(e, id) {
@@ -2268,13 +2371,86 @@ function toggleGenreChip(el) {
   el.classList.toggle('selected');
 }
 
+// ── RANDOM SERIES DRAW ──
+function clearRandomDrawTimers() {
+  randomDrawTimers.forEach(timer => clearTimeout(timer));
+  randomDrawTimers = [];
+}
+
+function chooseRandomSeries(candidates, avoidId = null) {
+  const pool = candidates.length > 1 && avoidId
+    ? candidates.filter(item => item.id !== avoidId)
+    : candidates;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function drawRandomSeries() {
+  if (isLoading) {
+    showToast('Aguarde as séries terminarem de carregar.', 'info');
+    return;
+  }
+
+  const candidates = getFiltered();
+  if (!candidates.length) {
+    const message = series.length
+      ? 'Nenhuma série corresponde à pesquisa ou aos filtros atuais.'
+      : 'Adicione pelo menos uma série antes de sortear.';
+    showToast(message, 'error');
+    return;
+  }
+
+  closeSidebar();
+  clearRandomDrawTimers();
+
+  document.getElementById('detailTitle').textContent = 'Sorteando...';
+  document.getElementById('detailContent').innerHTML = `
+    <div class="random-draw-body">
+      <div class="random-draw-icon">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
+      </div>
+      <div class="random-draw-label">Escolhendo sua próxima série</div>
+      <div class="random-draw-name" id="randomDrawName" aria-live="polite">Preparando o sorteio...</div>
+      <div class="random-draw-note">O sorteio considera a pesquisa e os filtros selecionados.</div>
+    </div>`;
+  document.getElementById('detailFooter').innerHTML = `
+    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('detailModal')">Cancelar</button>`;
+  openModal('detailModal');
+
+  const totalSteps = Math.min(20, Math.max(12, candidates.length * 2));
+
+  function runStep(step) {
+    const modal = document.getElementById('detailModal');
+    const nameEl = document.getElementById('randomDrawName');
+    if (!modal.classList.contains('open') || !nameEl) return;
+
+    const preview = candidates[Math.floor(Math.random() * candidates.length)];
+    nameEl.textContent = preview.name;
+
+    if (step >= totalSteps) {
+      const selected = chooseRandomSeries(candidates, lastRandomSeriesId);
+      lastRandomSeriesId = selected.id;
+      randomDrawTimers.push(setTimeout(() => {
+        openDetail(selected.id, true);
+        showToast(`A série sorteada foi: ${selected.name}`, 'success');
+      }, 260));
+      return;
+    }
+
+    const delay = 55 + Math.round(step * 10);
+    randomDrawTimers.push(setTimeout(() => runStep(step + 1), delay));
+  }
+
+  runStep(0);
+}
+
 // ── DETAIL MODAL ──
-function openDetail(id) {
+function openDetail(id, fromRandomDraw = false) {
   const s = series.find(x => x.id === id);
   if (!s) return;
   const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
 
-  document.getElementById('detailTitle').textContent = s.name;
+  clearRandomDrawTimers();
+  document.getElementById('detailTitle').textContent = fromRandomDraw ? 'Série sorteada!' : s.name;
 
   const posterHtml = s.poster
     ? `<div class="detail-poster-wrap">
@@ -2297,6 +2473,10 @@ function openDetail(id) {
   document.getElementById('detailContent').innerHTML = `
     ${posterHtml}
     <div class="detail-body">
+      ${fromRandomDraw ? `<div class="random-result-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.1L21 9l-5 4.3 1.5 6.5L12 16.4 6.5 19.8 8 13.3 3 9l6.6-.9L12 2z"/></svg>
+        Resultado do sorteio
+      </div>` : ''}
       <h3 class="detail-title">${escHtml(s.name)}</h3>
       <div class="detail-badges">
         <span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>
@@ -2306,15 +2486,22 @@ function openDetail(id) {
       ${synopsisHtml}
     </div>`;
 
-  document.getElementById('detailFooter').innerHTML = `
-    <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="openEditModal('${s.id}')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Editar
-    </button>
-    <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="closeModal('detailModal'); confirmDelete('${s.id}')">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
-      Excluir
-    </button>`;
+  document.getElementById('detailFooter').innerHTML = fromRandomDraw
+    ? `
+      <button class="btn btn-random" style="flex:1;justify-content:center" onclick="drawRandomSeries()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7h-3a4 4 0 0 0-4 4v6"/><path d="m17 4 3 3-3 3"/><path d="M4 17h3a4 4 0 0 0 4-4V7"/><path d="m7 20-3-3 3-3"/></svg>
+        Sortear novamente
+      </button>
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="closeModal('detailModal')">Fechar</button>`
+    : `
+      <button class="btn btn-ghost" style="flex:1;justify-content:center" onclick="openEditModal('${s.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar
+      </button>
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="closeModal('detailModal'); confirmDelete('${s.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+        Excluir
+      </button>`;
 
   openModal('detailModal');
 }
@@ -2407,6 +2594,9 @@ document.addEventListener('keydown', e => {
   } else if (e.key === 'n' || e.key === 'N') {
     e.preventDefault();
     openAddModal();
+  } else if (e.key === 'r' || e.key === 'R') {
+    e.preventDefault();
+    drawRandomSeries();
   }
 });
 
