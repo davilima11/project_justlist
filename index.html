@@ -520,7 +520,7 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      height: calc(13px * 1.3 * 2); /* sempre 2 linhas */
+      min-height: calc(13px * 1.3 * 2); /* garante 2 linhas sem cortar descendentes */
     }
 
     /* Metadados compactos do card */
@@ -777,6 +777,8 @@
     .series-grid.list-view .card-title {
       margin-bottom: 0;
       min-width: 140px;
+      min-height: unset;
+      height: auto;
       flex: 1;
       -webkit-line-clamp: 1;
     }
@@ -787,6 +789,7 @@
       align-items: center;
       gap: 8px;
       min-width: 260px;
+      min-height: unset;
     }
 
     .series-grid.list-view .card-meta-row {
@@ -2819,27 +2822,35 @@ function applyBadgeOverflow() {
     counter.style.display = 'none';
 
     const rowWidth = row.clientWidth;
+    if (rowWidth === 0) return; // elemento não visível ainda
     const gap = 4;
+
+    // Mede o contador enquanto está oculto via visibility, não display
+    // para obter largura real sem afetar o layout
+    counter.style.visibility = 'hidden';
+    counter.style.display = '';
+    const counterW = counter.offsetWidth;
+    counter.style.display = 'none';
+    counter.style.visibility = '';
+
     let used = 0;
     let hidden = 0;
 
     for (let i = 0; i < badges.length; i++) {
       const bw = badges[i].offsetWidth;
-      const needed = used === 0 ? bw : used + gap + bw;
+      const spaceNeeded = used === 0 ? bw : used + gap + bw;
+      // Reserva espaço para o +N apenas se existir badge seguinte que possa ser ocultado
+      const remainingAfter = badges.length - 1 - i;
+      const reserve = remainingAfter > 0 ? counterW + gap : 0;
 
-      // Verifica se ainda há badges depois deste — se sim, reserva espaço pro +N
-      const hasMore = i < badges.length - 1;
-      const counterW = hasMore ? (counter.offsetWidth || 28) + gap : 0;
-
-      if (needed + counterW > rowWidth) {
-        // Não cabe: esconde este e todos os seguintes
+      if (spaceNeeded + reserve > rowWidth) {
         for (let j = i; j < badges.length; j++) {
           badges[j].style.display = 'none';
           hidden++;
         }
         break;
       }
-      used = needed;
+      used = spaceNeeded;
     }
 
     if (hidden > 0) {
@@ -3064,9 +3075,14 @@ function openModal(id) {
 
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-  document.body.style.overflow = '';
-  document.body.classList.remove('modal-open');
   if (id === 'detailModal') clearRandomDrawTimers();
+  // Só limpa o overflow/modal-open quando nenhum outro modal continua aberto
+  const stillOpen = ['detailModal','formModal','confirmModal','contentTypeModal']
+    .some(mid => mid !== id && document.getElementById(mid).classList.contains('open'));
+  if (!stillOpen) {
+    document.body.style.overflow = '';
+    document.body.classList.remove('modal-open');
+  }
 }
 
 function handleOverlayClick(e, id) {
@@ -3181,9 +3197,9 @@ async function saveSeries() {
     : null;
   const importedYear = Number.parseInt(pendingTmdb && pendingTmdb.year, 10);
   const savedYear = Number.parseInt(existingItem ? getSeriesYear(existingItem) : '', 10);
-  const year = Number.isInteger(importedYear)
+  const year = Number.isFinite(importedYear) && importedYear > 0
     ? importedYear
-    : (Number.isInteger(savedYear) ? savedYear : null);
+    : (Number.isFinite(savedYear) && savedYear > 0 ? savedYear : null);
 
   const payload = {
     name,
@@ -3471,7 +3487,7 @@ function openDetail(id, fromRandomDraw = false) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Editar
       </button>
-      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="closeModal('detailModal'); confirmDelete('${s.id}')">
+      <button class="btn btn-danger" style="flex:1;justify-content:center" onclick="confirmDelete('${s.id}'); closeModal('detailModal')">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
         Excluir
       </button>`;
@@ -3492,6 +3508,10 @@ function confirmDelete(id) {
 
 async function deleteSeries(id) {
   const item = series.find(entry => entry.id === id);
+  if (!item) {
+    closeModal('confirmModal');
+    return;
+  }
   try {
     await removeSeriesFromDb(id);
     series = series.filter(entry => entry.id !== id);
@@ -3583,10 +3603,15 @@ function escHtml(str) {
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    ['detailModal','formModal','confirmModal','contentTypeModal'].forEach(id => {
-      if (document.getElementById(id).classList.contains('open')) closeModal(id);
+    const modals = ['detailModal','formModal','confirmModal','contentTypeModal'];
+    const closedAny = modals.some(id => {
+      if (document.getElementById(id).classList.contains('open')) {
+        closeModal(id);
+        return true;
+      }
+      return false;
     });
-    closeSidebar();
+    if (!closedAny) closeSidebar();
     return;
   }
 
@@ -3701,6 +3726,10 @@ function loadSavedTheme() {
 function loadPosterFromUrl() {
   const url = document.getElementById('inputPosterUrl').value.trim();
   if (!url) { showToast('Cole o link da imagem primeiro.', 'error'); return; }
+  if (!/^https?:\/\/.+/i.test(url)) {
+    showToast('Cole um link válido (começando com http ou https).', 'error');
+    return;
+  }
   currentPosterData = url;
   showPosterPreview(url);
   document.getElementById('inputPosterUrl').value = '';
