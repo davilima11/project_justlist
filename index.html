@@ -444,6 +444,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
       gap: 16px;
+      align-items: start;
     }
 
     .series-grid.list-view {
@@ -460,6 +461,8 @@
       cursor: pointer;
       transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
       position: relative;
+      height: fit-content;
+      align-self: start;
     }
     .series-card:hover {
       transform: translateY(-3px);
@@ -513,53 +516,12 @@
       font-size: 13px;
       font-weight: 600;
       color: var(--text);
-      margin-bottom: 7px;
+      margin-bottom: 10px;
       line-height: 1.3;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-    }
-
-    /* Metadados compactos do card */
-    .card-meta-groups {
-      display: grid;
-      gap: 5px;
-      min-width: 0;
-    }
-
-    .card-meta-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      min-width: 0;
-      overflow: hidden;
-    }
-
-    .card-meta-row .badge {
-      flex: 0 0 auto;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .card-meta-row-primary .badge-platform {
-      max-width: 94px;
-    }
-
-    .card-meta-row-genres .badge-genre {
-      max-width: 92px;
-    }
-
-    .badge-more {
-      background: rgba(255,255,255,0.045);
-      color: var(--text-dim);
-      border: 1px solid var(--border);
-      font-weight: 600;
-    }
-
-    [data-theme="light"] .badge-more {
-      background: rgba(0,0,0,0.035);
     }
 
     .card-meta {
@@ -767,7 +729,6 @@
       align-items: center;
       gap: 16px;
       flex-wrap: wrap;
-      min-width: 0;
     }
 
     .series-grid.list-view .card-title {
@@ -775,19 +736,6 @@
       min-width: 140px;
       flex: 1;
       -webkit-line-clamp: 1;
-    }
-
-    .series-grid.list-view .card-meta-groups {
-      display: flex;
-      flex: 2;
-      align-items: center;
-      gap: 8px;
-      min-width: 260px;
-    }
-
-    .series-grid.list-view .card-meta-row {
-      flex-wrap: nowrap;
-      max-width: 260px;
     }
 
     .series-grid.list-view .card-meta {
@@ -1290,96 +1238,6 @@
     .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
     .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
 
-    /* Organized detail information */
-    .detail-info-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-
-    .detail-info-item {
-      min-width: 0;
-      padding: 11px 12px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      background: var(--bg-card);
-    }
-
-    .detail-info-label {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--text-dim);
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
-    }
-
-    .detail-info-value {
-      display: block;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.35;
-      overflow-wrap: anywhere;
-    }
-
-    .detail-section {
-      padding: 14px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(255,255,255,0.018);
-    }
-
-    [data-theme="light"] .detail-section {
-      background: rgba(0,0,0,0.018);
-    }
-
-    .detail-section:last-child { margin-bottom: 0; }
-
-    .detail-section-heading {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-    }
-
-    .detail-section-heading svg {
-      width: 14px;
-      height: 14px;
-      color: var(--accent);
-      flex-shrink: 0;
-    }
-
-    .detail-chip-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .detail-empty-value {
-      color: var(--text-dim);
-      font-size: 13px;
-      font-style: italic;
-    }
-
-    @media (max-width: 520px) {
-      .detail-info-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .detail-info-item:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-      }
-    }
-
     .detail-section-label {
       font-size: 11px;
       font-weight: 600;
@@ -1756,14 +1614,6 @@
 
       .content { padding: 16px 12px 90px; }
       .series-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-      .series-grid.list-view .card-body { align-items: flex-start; gap: 7px; }
-      .series-grid.list-view .card-meta-groups {
-        display: grid;
-        gap: 4px;
-        width: 100%;
-        min-width: 0;
-      }
-      .series-grid.list-view .card-meta-row { max-width: none; }
       .modal { max-height: 95vh; }
       .fab { bottom: 20px; right: 16px; width: 52px; height: 52px; }
     }
@@ -2814,40 +2664,20 @@ function renderCard(s, idx) {
   const contentTypeLabel = getContentTypeLabel(s);
   const contentTypeBadge = `<span class="badge badge-content-type" data-content-type="${contentType}">${contentTypeLabel}</span>`;
   const flag = contentType === 'series' ? (COUNTRY_FLAG[s.type] || '') : '';
+  const flagSpan = flag ? `<span class="flag" aria-hidden="true">${flag}</span>` : '';
+  const originBadge = contentType === 'series' && s.type
+    ? `<span class="badge badge-type">${flagSpan}${escHtml(s.type)}</span>`
+    : '';
   const year = getSeriesYear(s);
   const yearBadgeGrid = year ? `<span class="badge badge-year">${year}</span>` : '';
-  const platforms = getSeriesPlatforms(s);
+  const yearBadgeMeta = year ? `<span class="badge badge-year">${year}</span>` : '';
 
-  const originBadge = contentType === 'series' && s.type
-    ? `<span class="badge badge-type" title="Origem: ${escHtml(s.type)}">${flag ? `${flag} ` : ''}${escHtml(s.type)}</span>`
-    : '';
-
-  const visiblePlatforms = platforms.slice(0, 2);
-  const platformBadges = visiblePlatforms.map(platform =>
-    `<span class="badge badge-platform" data-platform="${escHtml(platform)}" title="${escHtml(platform)}">${escHtml(platform)}</span>`
+  const genreBadges = genres.slice(0, 2).map(g =>
+    `<span class="badge badge-genre">${escHtml(g)}</span>`
   ).join('');
-  const extraPlatforms = platforms.length > 2
-    ? `<span class="badge badge-more" title="${escHtml(platforms.slice(2).join(', '))}">+${platforms.length - 2}</span>`
-    : '';
-
-  const visibleGenres = genres.slice(0, 2);
-  const genreBadges = visibleGenres.map(genre =>
-    `<span class="badge badge-genre" title="${escHtml(genre)}">${escHtml(genre)}</span>`
+  const platformBadges = getSeriesPlatforms(s).map(platform =>
+    `<span class="badge badge-platform" data-platform="${escHtml(platform)}">${escHtml(platform)}</span>`
   ).join('');
-  const extraGenres = genres.length > 2
-    ? `<span class="badge badge-more" title="${escHtml(genres.slice(2).join(', '))}">+${genres.length - 2}</span>`
-    : '';
-
-  const primaryMeta = originBadge || platformBadges || extraPlatforms
-    ? `<div class="card-meta-row card-meta-row-primary">${originBadge}${platformBadges}${extraPlatforms}</div>`
-    : '';
-  const genreMeta = genreBadges || extraGenres
-    ? `<div class="card-meta-row card-meta-row-genres">${genreBadges}${extraGenres}</div>`
-    : '';
-
-  const cardInfo = primaryMeta || genreMeta
-    ? `<div class="card-meta-groups">${primaryMeta}${genreMeta}</div>`
-    : '';
 
   const hoverOverlay = currentView === 'grid' ? `
     <div class="card-hover-overlay">
@@ -2866,7 +2696,12 @@ function renderCard(s, idx) {
       ${posterBlock}
       <div class="card-body">
         <div class="card-title">${escHtml(s.name)}</div>
-        ${cardInfo}
+        <div class="card-meta">
+          ${originBadge}
+          ${yearBadgeMeta}
+          ${genreBadges}
+          ${platformBadges}
+        </div>
       </div>
       <div class="card-actions">
         <button class="card-action-btn card-action-edit" onclick="event.stopPropagation(); openEditModal('${s.id}')" title="Editar">
@@ -2891,7 +2726,11 @@ function renderCard(s, idx) {
     </div>
     <div class="card-body">
       <div class="card-title">${escHtml(s.name)}</div>
-      ${cardInfo}
+      <div class="card-meta">
+        ${originBadge}
+        ${genreBadges}
+        ${platformBadges}
+      </div>
     </div>
   </div>`;
 }
@@ -3347,39 +3186,17 @@ function openDetail(id, fromRandomDraw = false) {
         <div class="detail-poster-gradient"></div>
        </div>`;
 
-  const genreBadges = genres.length
-    ? genres.map(g => `<span class="detail-badge detail-badge-genre">${escHtml(g)}</span>`).join('')
-    : `<span class="detail-empty-value">Nenhum gênero informado.</span>`;
-
-  const platformBadges = platforms.length
-    ? platforms.map(platform => `<span class="detail-badge detail-badge-platform">${escHtml(platform)}</span>`).join('')
-    : `<span class="detail-empty-value">Nenhuma plataforma informada.</span>`;
+  const genreBadges = genres.map(g =>
+    `<span class="detail-badge detail-badge-genre">${escHtml(g)}</span>`
+  ).join('');
+  const platformBadges = platforms.map(platform =>
+    `<span class="detail-badge detail-badge-platform">${escHtml(platform)}</span>`
+  ).join('');
 
   const synopsisHtml = s.synopsis
-    ? `<p class="detail-synopsis">${escHtml(s.synopsis).replace(/\n/g, '<br>')}</p>`
+    ? `<div class="detail-section-label">Sinopse</div>
+       <p class="detail-synopsis">${escHtml(s.synopsis).replace(/\n/g, '<br>')}</p>`
     : `<p class="detail-no-synopsis">Sem sinopse cadastrada.</p>`;
-
-  const infoItems = [
-    {
-      label: 'Tipo',
-      value: detailContentTypeLabel
-    },
-    detailYear ? {
-      label: 'Ano',
-      value: detailYear
-    } : null,
-    detailContentType === 'series' && s.type ? {
-      label: 'Origem',
-      value: s.type
-    } : null
-  ].filter(Boolean);
-
-  const infoGridHtml = infoItems.map(item => `
-    <div class="detail-info-item">
-      <span class="detail-info-label">${escHtml(item.label)}</span>
-      <span class="detail-info-value">${escHtml(item.value)}</span>
-    </div>
-  `).join('');
 
   document.getElementById('detailContent').innerHTML = `
     ${posterHtml}
@@ -3388,36 +3205,14 @@ function openDetail(id, fromRandomDraw = false) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.1L21 9l-5 4.3 1.5 6.5L12 16.4 6.5 19.8 8 13.3 3 9l6.6-.9L12 2z"/></svg>
         Resultado do sorteio
       </div>` : ''}
-
       <h3 class="detail-title">${escHtml(s.name)}</h3>
-
-      <div class="detail-info-grid">
-        ${infoGridHtml}
+      <div class="detail-badges">
+        ${detailYear ? `<span class="detail-badge detail-badge-year">${escHtml(detailYear)}</span>` : ''}
+        ${getContentType(s) === 'series' && s.type ? `<span class="detail-badge detail-badge-type">${escHtml(s.type)}</span>` : ''}
+        ${platformBadges}
+        ${genreBadges}
       </div>
-
-      <section class="detail-section">
-        <div class="detail-section-heading">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4M7 11h10"/></svg>
-          Plataformas
-        </div>
-        <div class="detail-chip-list">${platformBadges}</div>
-      </section>
-
-      <section class="detail-section">
-        <div class="detail-section-heading">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="6.5" r=".5" fill="currentColor"/></svg>
-          Gêneros
-        </div>
-        <div class="detail-chip-list">${genreBadges}</div>
-      </section>
-
-      <section class="detail-section">
-        <div class="detail-section-heading">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-          Sinopse
-        </div>
-        ${synopsisHtml}
-      </section>
+      ${synopsisHtml}
     </div>`;
 
   document.getElementById('detailFooter').innerHTML = fromRandomDraw
