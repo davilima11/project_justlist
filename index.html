@@ -570,6 +570,15 @@
       font-weight: 600;
     }
 
+    /* O contador +N nunca pode encolher nem ser cortado pela linha. */
+    .badge-overflow-counter {
+      flex: 0 0 auto !important;
+      max-width: none !important;
+      min-width: max-content;
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+
     [data-theme="light"] .badge-more {
       background: rgba(0,0,0,0.035);
     }
@@ -2827,47 +2836,65 @@ function applyBadgeOverflow() {
     const counter = row.querySelector('.badge-overflow-counter');
     if (!counter) return;
 
-    // Reseta: mostra todos, esconde counter
     const badges = Array.from(row.querySelectorAll('.badge:not(.badge-overflow-counter)'));
-    badges.forEach(b => { b.style.display = ''; });
-    counter.style.display = 'none';
 
-    const rowWidth = row.clientWidth;
-    if (rowWidth === 0) return; // elemento não visível ainda
-    const gap = 4;
-
-    // Mede o contador enquanto está oculto via visibility, não display
-    // para obter largura real sem afetar o layout
-    counter.style.visibility = 'hidden';
-    counter.style.display = '';
-    const counterW = counter.offsetWidth;
+    // Começa a medição com todos os badges visíveis.
+    badges.forEach(badge => {
+      badge.style.display = '';
+    });
     counter.style.display = 'none';
     counter.style.visibility = '';
+    counter.textContent = '';
 
-    let used = 0;
-    let hidden = 0;
+    const rowWidth = row.clientWidth;
+    if (rowWidth <= 0 || badges.length === 0) return;
 
-    for (let i = 0; i < badges.length; i++) {
-      const bw = badges[i].offsetWidth;
-      const spaceNeeded = used === 0 ? bw : used + gap + bw;
-      // Reserva espaço para o +N apenas se existir badge seguinte que possa ser ocultado
-      const remainingAfter = badges.length - 1 - i;
-      const reserve = remainingAfter > 0 ? counterW + gap : 0;
+    // Evita cortes de 1 ou 2 pixels causados por arredondamento do navegador.
+    const safeRowWidth = Math.max(0, rowWidth - 2);
+    const styles = getComputedStyle(row);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
+    const badgeWidths = badges.map(badge => badge.getBoundingClientRect().width);
+    const allBadgesWidth = badgeWidths.reduce((total, width) => total + width, 0)
+      + gap * Math.max(0, badges.length - 1);
 
-      if (spaceNeeded + reserve > rowWidth) {
-        for (let j = i; j < badges.length; j++) {
-          badges[j].style.display = 'none';
-          hidden++;
-        }
+    // Todos cabem: não há necessidade do contador.
+    if (allBadgesWidth <= safeRowWidth) return;
+
+    // Testa o contador já com o texto real (+1, +2, +10...), pois sua
+    // largura muda conforme a quantidade de itens escondidos.
+    let visibleCount = 0;
+    let hiddenCount = badges.length;
+
+    counter.style.display = '';
+    counter.style.visibility = 'hidden';
+
+    for (let candidateVisible = badges.length - 1; candidateVisible >= 0; candidateVisible--) {
+      const candidateHidden = badges.length - candidateVisible;
+      counter.textContent = `+${candidateHidden}`;
+
+      const counterWidth = counter.getBoundingClientRect().width;
+      const visibleBadgesWidth = badgeWidths
+        .slice(0, candidateVisible)
+        .reduce((total, width) => total + width, 0);
+      const itemCount = candidateVisible + 1; // badges visíveis + contador
+      const totalWidth = visibleBadgesWidth
+        + counterWidth
+        + gap * Math.max(0, itemCount - 1);
+
+      if (totalWidth <= safeRowWidth) {
+        visibleCount = candidateVisible;
+        hiddenCount = candidateHidden;
         break;
       }
-      used = spaceNeeded;
     }
 
-    if (hidden > 0) {
-      counter.textContent = '+' + hidden;
-      counter.style.display = '';
-    }
+    badges.forEach((badge, index) => {
+      badge.style.display = index < visibleCount ? '' : 'none';
+    });
+
+    counter.textContent = `+${hiddenCount}`;
+    counter.style.visibility = '';
+    counter.style.display = '';
   });
 }
 
