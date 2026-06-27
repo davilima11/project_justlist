@@ -508,8 +508,6 @@
 
     .card-body {
       padding: 10px 12px 10px;
-      display: flex;
-      flex-direction: column;
     }
 
     .card-title {
@@ -518,26 +516,20 @@
       color: var(--text);
       margin-bottom: 7px;
       line-height: 1.3;
-      /* altura fixa de exatamente 2 linhas — título curto ou longo ocupa o mesmo */
-      height: calc(13px * 1.3 * 2);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      flex-shrink: 0;
+      min-height: calc(13px * 1.3 * 2); /* garante 2 linhas sem cortar descendentes */
     }
 
     /* Metadados compactos do card */
     .card-meta-groups {
-      display: flex;
-      flex-direction: column;
+      display: grid;
       gap: 5px;
       min-width: 0;
-      /* altura fixa de exatamente 2 linhas de badges */
-      height: calc((10px + 4px) * 2 + 5px);
-      overflow: hidden;
+      min-height: 42px; /* reserva espaço para 2 linhas de badges sempre */
       align-content: start;
-      justify-content: flex-start;
     }
 
     .card-meta-row {
@@ -780,7 +772,6 @@
       gap: 16px;
       flex-wrap: wrap;
       min-width: 0;
-      grid-template-rows: unset; /* reseta o grid do modo grade */
     }
 
     .series-grid.list-view .card-title {
