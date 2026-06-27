@@ -2804,6 +2804,49 @@ function render() {
   }
 
   grid.innerHTML = filtered.map((item, index) => renderCard(item, index)).join('');
+  requestAnimationFrame(applyBadgeOverflow);
+}
+
+// ── BADGE OVERFLOW: mostra +N só quando não cabe ──
+function applyBadgeOverflow() {
+  document.querySelectorAll('.badge-overflow-row').forEach(row => {
+    const counter = row.querySelector('.badge-overflow-counter');
+    if (!counter) return;
+
+    // Reseta: mostra todos, esconde counter
+    const badges = Array.from(row.querySelectorAll('.badge:not(.badge-overflow-counter)'));
+    badges.forEach(b => { b.style.display = ''; });
+    counter.style.display = 'none';
+
+    const rowWidth = row.clientWidth;
+    const gap = 4;
+    let used = 0;
+    let hidden = 0;
+
+    for (let i = 0; i < badges.length; i++) {
+      const bw = badges[i].offsetWidth;
+      const needed = used === 0 ? bw : used + gap + bw;
+
+      // Verifica se ainda há badges depois deste — se sim, reserva espaço pro +N
+      const hasMore = i < badges.length - 1;
+      const counterW = hasMore ? (counter.offsetWidth || 28) + gap : 0;
+
+      if (needed + counterW > rowWidth) {
+        // Não cabe: esconde este e todos os seguintes
+        for (let j = i; j < badges.length; j++) {
+          badges[j].style.display = 'none';
+          hidden++;
+        }
+        break;
+      }
+      used = needed;
+    }
+
+    if (hidden > 0) {
+      counter.textContent = '+' + hidden;
+      counter.style.display = '';
+    }
+  });
 }
 
 function renderCard(s, idx) {
@@ -2826,27 +2869,19 @@ function renderCard(s, idx) {
     ? `<span class="badge badge-type" title="Origem: ${escHtml(s.type)}">${flag ? `${flag} ` : ''}${escHtml(s.type)}</span>`
     : '';
 
-  const visiblePlatforms = platforms.slice(0, 2);
-  const platformBadges = visiblePlatforms.map(platform =>
+  const platformBadges = platforms.map(platform =>
     `<span class="badge badge-platform" data-platform="${escHtml(platform)}" title="${escHtml(platform)}">${escHtml(platform)}</span>`
   ).join('');
-  const extraPlatforms = platforms.length > 2
-    ? `<span class="badge badge-more" title="${escHtml(platforms.slice(2).join(', '))}">+${platforms.length - 2}</span>`
-    : '';
 
-  const visibleGenres = genres.slice(0, 2);
-  const genreBadges = visibleGenres.map(genre =>
+  const genreBadges = genres.map(genre =>
     `<span class="badge badge-genre" title="${escHtml(genre)}">${escHtml(genre)}</span>`
   ).join('');
-  const extraGenres = genres.length > 2
-    ? `<span class="badge badge-more" title="${escHtml(genres.slice(2).join(', '))}">+${genres.length - 2}</span>`
-    : '';
 
-  const primaryMeta = originBadge || platformBadges || extraPlatforms
-    ? `<div class="card-meta-row card-meta-row-primary">${originBadge}${platformBadges}${extraPlatforms}</div>`
+  const primaryMeta = originBadge || platformBadges
+    ? `<div class="card-meta-row card-meta-row-primary badge-overflow-row">${originBadge}${platformBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
     : '';
-  const genreMeta = genreBadges || extraGenres
-    ? `<div class="card-meta-row card-meta-row-genres">${genreBadges}${extraGenres}</div>`
+  const genreMeta = genreBadges
+    ? `<div class="card-meta-row card-meta-row-genres badge-overflow-row">${genreBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
     : '';
 
   const cardInfo = primaryMeta || genreMeta
@@ -3674,6 +3709,13 @@ function loadPosterFromUrl() {
 
 // ── INIT ──
 loadSavedTheme();
+
+// Recalcula overflow quando o grid muda de largura (resize de janela ou sidebar)
+if (typeof ResizeObserver !== 'undefined') {
+  const ro = new ResizeObserver(() => applyBadgeOverflow());
+  const gridEl = document.getElementById('seriesGrid');
+  if (gridEl) ro.observe(gridEl);
+}
 (async function init() {
   render(); // show skeletons immediately
   await loadData();
