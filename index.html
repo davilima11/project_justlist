@@ -508,13 +508,8 @@
 
     .card-body {
       padding: 10px 12px 10px;
-      /* altura fixa: todos os cards têm o mesmo rodapé,
-         independente do tamanho do título */
-      height: 82px;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
     }
 
     .card-title {
@@ -523,6 +518,8 @@
       color: var(--text);
       margin-bottom: 7px;
       line-height: 1.3;
+      /* altura fixa de exatamente 2 linhas — título curto ou longo ocupa o mesmo */
+      height: calc(13px * 1.3 * 2);
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
@@ -532,14 +529,15 @@
 
     /* Metadados compactos do card */
     .card-meta-groups {
-      display: grid;
-      gap: 5px;
-      min-width: 0;
-      align-content: end;
-      flex: 1;
-      justify-content: end;
       display: flex;
       flex-direction: column;
+      gap: 5px;
+      min-width: 0;
+      /* altura fixa de exatamente 2 linhas de badges */
+      height: calc((10px + 4px) * 2 + 5px);
+      overflow: hidden;
+      align-content: start;
+      justify-content: flex-start;
     }
 
     .card-meta-row {
