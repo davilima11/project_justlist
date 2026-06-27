@@ -592,11 +592,13 @@
       position: absolute;
       top: 8px;
       left: 8px;
+      right: 8px;
       z-index: 4;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: flex-start;
-      gap: 5px;
+      justify-content: space-between;
+      gap: 8px;
       pointer-events: none;
     }
 
@@ -622,13 +624,14 @@
 
     .card-poster-badges .badge-year {
       position: static;
-      background: rgba(0,0,0,0.28);
-      color: rgba(255,255,255,0.72);
-      border: 1px solid rgba(255,255,255,0.10);
+      margin-left: auto;
+      background: rgba(0,0,0,0.24);
+      color: rgba(255,255,255,0.68);
+      border: 1px solid rgba(255,255,255,0.09);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      box-shadow: 0 1px 5px rgba(0,0,0,0.16);
-      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.14);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.32);
     }
 
     /* Country flag */
@@ -636,7 +639,7 @@
 
     .card-actions {
       position: absolute;
-      top: 8px;
+      top: 36px;
       right: 8px;
       display: flex;
       gap: 4px;
@@ -696,7 +699,8 @@
     .series-grid.list-view .card-poster-badges {
       top: 4px;
       left: 4px;
-      gap: 3px;
+      right: 4px;
+      gap: 4px;
     }
 
     .series-grid.list-view .card-poster-badges .badge-content-type {
@@ -706,7 +710,10 @@
     }
 
     .series-grid.list-view .card-poster-badges .badge-year {
-      display: none;
+      display: inline-flex;
+      font-size: 7px;
+      padding: 2px 4px;
+      border-radius: 3px;
     }
 
     .series-grid.list-view .card-body {
