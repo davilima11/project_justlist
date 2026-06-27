@@ -508,10 +508,13 @@
 
     .card-body {
       padding: 10px 12px 10px;
-      display: grid;
-      /* título cresce livremente; badges ficam sempre colados embaixo */
-      grid-template-rows: 1fr auto;
-      align-items: end;
+      /* altura fixa: todos os cards têm o mesmo rodapé,
+         independente do tamanho do título */
+      height: 82px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .card-title {
@@ -524,8 +527,7 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      /* sem min-height: o grid cuida do alinhamento */
-      align-self: end;
+      flex-shrink: 0;
     }
 
     /* Metadados compactos do card */
@@ -533,8 +535,11 @@
       display: grid;
       gap: 5px;
       min-width: 0;
-      /* sem min-height: ocupa só o que os badges precisam */
-      align-content: start;
+      align-content: end;
+      flex: 1;
+      justify-content: end;
+      display: flex;
+      flex-direction: column;
     }
 
     .card-meta-row {
