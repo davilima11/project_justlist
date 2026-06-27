@@ -508,6 +508,10 @@
 
     .card-body {
       padding: 10px 12px 10px;
+      display: grid;
+      /* título cresce livremente; badges ficam sempre colados embaixo */
+      grid-template-rows: 1fr auto;
+      align-items: end;
     }
 
     .card-title {
@@ -520,7 +524,8 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: calc(13px * 1.3 * 2); /* garante 2 linhas sem cortar descendentes */
+      /* sem min-height: o grid cuida do alinhamento */
+      align-self: end;
     }
 
     /* Metadados compactos do card */
@@ -528,7 +533,7 @@
       display: grid;
       gap: 5px;
       min-width: 0;
-      min-height: 42px; /* reserva espaço para 2 linhas de badges sempre */
+      /* sem min-height: ocupa só o que os badges precisam */
       align-content: start;
     }
 
@@ -772,6 +777,7 @@
       gap: 16px;
       flex-wrap: wrap;
       min-width: 0;
+      grid-template-rows: unset; /* reseta o grid do modo grade */
     }
 
     .series-grid.list-view .card-title {
