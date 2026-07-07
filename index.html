@@ -613,6 +613,12 @@
       border-color: rgba(253, 186, 116, 0.24);
       box-shadow: 0 1px 5px rgba(234, 88, 12, 0.1), 0 1px 4px rgba(0,0,0,0.18);
     }
+    .badge-content-type[data-content-type="anime"] {
+      background: rgba(124, 58, 237, 0.22);
+      color: #fff;
+      border-color: rgba(216, 180, 254, 0.26);
+      box-shadow: 0 1px 5px rgba(124, 58, 237, 0.12), 0 1px 4px rgba(0,0,0,0.18);
+    }
     .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
     .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
 
@@ -685,6 +691,13 @@
       background: rgba(234, 88, 12, 0.22);
       border-color: rgba(253, 186, 116, 0.26);
       box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12), 0 2px 8px rgba(0,0,0,0.24);
+    }
+
+    .card-poster-badges .badge-content-type[data-content-type="anime"] {
+      color: #fff;
+      background: rgba(124, 58, 237, 0.26);
+      border-color: rgba(216, 180, 254, 0.28);
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.14), 0 2px 8px rgba(0,0,0,0.24);
     }
 
     .card-poster-badges .badge-year {
@@ -1257,6 +1270,12 @@
       box-shadow: 0 2px 10px rgba(234, 88, 12, 0.12), 0 2px 10px rgba(0,0,0,0.26);
     }
 
+    .detail-content-type-overlay[data-content-type="anime"] {
+      background: rgba(124, 58, 237, 0.24);
+      border-color: rgba(216, 180, 254, 0.28);
+      box-shadow: 0 2px 10px rgba(124, 58, 237, 0.12), 0 2px 10px rgba(0,0,0,0.26);
+    }
+
     .detail-poster-gradient {
       position: absolute;
       bottom: 0;
@@ -1313,6 +1332,11 @@
       background: rgba(234, 88, 12, 0.1);
       color: #fff;
       border-color: rgba(253, 186, 116, 0.2);
+    }
+    .detail-badge-content-type[data-content-type="anime"] {
+      background: rgba(124, 58, 237, 0.12);
+      color: #fff;
+      border-color: rgba(216, 180, 254, 0.2);
     }
     .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
     .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
@@ -1505,10 +1529,10 @@
     }
 
     /* ── CONTENT TYPE CHOOSER ── */
-    .content-type-modal { max-width: 460px; }
+    .content-type-modal { max-width: 560px; }
     .content-type-options {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       padding: 22px 24px 26px;
     }
@@ -1547,9 +1571,16 @@
       background: rgba(245,158,11,0.14);
       color: #f59e0b;
     }
+    .content-type-option.anime .content-type-option-icon {
+      background: rgba(124,58,237,0.14);
+      color: #7c3aed;
+    }
     .content-type-option strong { font-size: 15px; }
     .content-type-option span { font-size: 11px; line-height: 1.45; color: var(--text-dim); }
 
+    @media (max-width: 620px) {
+      .content-type-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     @media (max-width: 480px) {
       .content-type-options { grid-template-columns: 1fr; }
       .content-type-option { min-height: 116px; }
@@ -1872,6 +1903,7 @@
       <div class="filter-chips" id="filterContentType">
         <span class="chip" data-filter="contentType" data-value="series" onclick="toggleFilter(this)">Séries</span>
         <span class="chip" data-filter="contentType" data-value="movie" onclick="toggleFilter(this)">Filmes</span>
+        <span class="chip" data-filter="contentType" data-value="anime" onclick="toggleFilter(this)">Animes</span>
       </div>
     </div>
 
@@ -1881,6 +1913,8 @@
         <span class="chip" data-filter="type" data-value="Coreia" onclick="toggleFilter(this)">Coreia</span>
         <span class="chip" data-filter="type" data-value="China" onclick="toggleFilter(this)">China</span>
         <span class="chip" data-filter="type" data-value="Turquia" onclick="toggleFilter(this)">Turquia</span>
+        <span class="chip" data-filter="type" data-value="Japão" onclick="toggleFilter(this)">Japão</span>
+        <span class="chip" data-filter="type" data-value="Tailândia" onclick="toggleFilter(this)">Tailândia</span>
         <span class="chip" data-filter="type" data-value="Outros" onclick="toggleFilter(this)">Outros</span>
       </div>
     </div>
@@ -2001,6 +2035,13 @@
         <strong>Adicionar filme</strong>
         <span>Pesquise filmes no TMDB e importe capa, sinopse e gêneros.</span>
       </button>
+      <button class="content-type-option anime" onclick="startAddContent('anime')">
+        <span class="content-type-option-icon">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.6 2.6M15.8 15.8l2.6 2.6M18.4 5.6l-2.6 2.6M8.2 15.8l-2.6 2.6"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <strong>Adicionar anime</strong>
+        <span>Pesquise animes no TMDB ou preencha os dados manualmente.</span>
+      </button>
     </div>
   </div>
 </div>
@@ -2022,6 +2063,7 @@
         <select class="form-select" id="inputContentType">
           <option value="series">Série</option>
           <option value="movie">Filme</option>
+          <option value="anime">Anime</option>
         </select>
       </div>
 
@@ -2072,6 +2114,8 @@
           <option value="Coreia">Coreia</option>
           <option value="China">China</option>
           <option value="Turquia">Turquia</option>
+          <option value="Japão">Japão</option>
+          <option value="Tailândia">Tailândia</option>
           <option value="Outros">Outros</option>
         </select>
       </div>
@@ -2179,7 +2223,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- FAB (mobile) -->
-<button class="fab" id="fab" onclick="openContentTypeChooser()" aria-label="Adicionar série ou filme">
+<button class="fab" id="fab" onclick="openContentTypeChooser()" aria-label="Adicionar série, filme ou anime">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 
@@ -2244,19 +2288,25 @@ const COUNTRY_FLAG = {
   'Coreia': '🇰🇷',
   'China': '🇨🇳',
   'Turquia': '🇹🇷',
+  'Japão': '🇯🇵',
+  'Tailândia': '🇹🇭',
   'Outros': '🌍'
 };
 
 function getContentType(item) {
   const raw = String((item && (item.content_type || item.contentType)) || 'series').toLowerCase();
-  return raw === 'movie' || raw === 'filme' ? 'movie' : 'series';
+  if (raw === 'movie' || raw === 'filme') return 'movie';
+  if (raw === 'anime') return 'anime';
+  return 'series';
 }
 
 function getContentTypeLabel(itemOrType) {
   const type = typeof itemOrType === 'string'
     ? getContentType({ content_type: itemOrType })
     : getContentType(itemOrType);
-  return type === 'movie' ? 'Filme' : 'Série';
+  if (type === 'movie') return 'Filme';
+  if (type === 'anime') return 'Anime';
+  return 'Série';
 }
 
 // Retorna o ano lendo do registro ou do cache TMDB.
@@ -2278,6 +2328,8 @@ function mapTmdbCountry(originCountries) {
   if (originCountries.includes('KR')) return 'Coreia';
   if (originCountries.includes('CN') || originCountries.includes('TW') || originCountries.includes('HK')) return 'China';
   if (originCountries.includes('TR')) return 'Turquia';
+  if (originCountries.includes('JP')) return 'Japão';
+  if (originCountries.includes('TH')) return 'Tailândia';
   return 'Outros';
 }
 
@@ -2432,34 +2484,39 @@ function serializePlatforms(platforms) {
 
 function getFormContentType() {
   const select = document.getElementById('inputContentType');
-  return select && select.value === 'movie' ? 'movie' : 'series';
+  const value = select && select.value;
+  return value === 'movie' || value === 'anime' ? value : 'series';
 }
 
 function updateContentTypeFormUI(contentType, editing = false) {
-  const normalized = contentType === 'movie' ? 'movie' : 'series';
+  const normalized = contentType === 'movie' ? 'movie' : (contentType === 'anime' ? 'anime' : 'series');
   const isMovie = normalized === 'movie';
+  const isAnime = normalized === 'anime';
   const select = document.getElementById('inputContentType');
   const originGroup = document.getElementById('originFormGroup');
   const originSelect = document.getElementById('inputType');
   if (select) select.value = normalized;
 
-  // Filmes não exigem país/origem. Mantemos "Outros" internamente para
-  // compatibilidade com a coluna antiga `type` do Supabase.
+  // Filmes não exigem país/origem. Séries e animes exigem. Mantemos "Outros"
+  // internamente para compatibilidade com a coluna antiga `type` do Supabase.
   if (originGroup) originGroup.style.display = isMovie ? 'none' : '';
   if (isMovie && originSelect) originSelect.value = 'Outros';
+  // Animes costumam ter origem no Japão — pré-seleciona quando o campo ainda está vazio.
+  if (isAnime && originSelect && !originSelect.value) originSelect.value = 'Japão';
 
-  document.getElementById('formModalTitle').textContent = `${editing ? 'Editar' : 'Adicionar'} ${isMovie ? 'filme' : 'série'}`;
-  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : 'Nome da série';
-  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : 'Ex: Alchemy of Souls';
+  const typeLabel = isMovie ? 'filme' : (isAnime ? 'anime' : 'série');
+  document.getElementById('formModalTitle').textContent = `${editing ? 'Editar' : 'Adicionar'} ${typeLabel}`;
+  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : (isAnime ? 'Nome do anime' : 'Nome da série');
+  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : (isAnime ? 'Ex: Attack on Titan' : 'Ex: Alchemy of Souls');
   document.getElementById('inputSynopsis').placeholder = isMovie
     ? 'Escreva uma breve descrição do filme...'
-    : 'Escreva uma breve descrição da série...';
+    : (isAnime ? 'Escreva uma breve descrição do anime...' : 'Escreva uma breve descrição da série...');
   document.getElementById('tmdbSearchLabelText').textContent = isMovie
     ? 'Buscar filme no TMDB · preencher automaticamente'
-    : 'Buscar série no TMDB · preencher automaticamente';
+    : (isAnime ? 'Buscar anime no TMDB · preencher automaticamente' : 'Buscar série no TMDB · preencher automaticamente');
   document.getElementById('tmdbSearchInput').placeholder = isMovie
     ? 'Ex: Parasita, Duna, Interestelar...'
-    : 'Ex: Goblin, Crash Landing on You...';
+    : (isAnime ? 'Ex: Naruto, One Piece, Jujutsu Kaisen...' : 'Ex: Goblin, Crash Landing on You...');
 }
 
 async function tmdbSearch(query) {
@@ -2515,6 +2572,8 @@ function renderTmdbResults(results, hasError, contentType = getFormContentType()
   }
 
   const isMovie = contentType === 'movie';
+  const isAnime = contentType === 'anime';
+  const typeLabel = isMovie ? 'Filme' : (isAnime ? 'Anime' : 'Série');
   const placeholder = `<div class="tmdb-result-poster-placeholder">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
   </div>`;
@@ -2535,7 +2594,7 @@ function renderTmdbResults(results, hasError, contentType = getFormContentType()
       ${posterHtml}
       <div class="tmdb-result-info">
         <div class="tmdb-result-name">${escHtml(name)}</div>
-        <div class="tmdb-result-meta">${year} · ${isMovie ? 'Filme' : 'Série'}${country}${original}</div>
+        <div class="tmdb-result-meta">${year} · ${typeLabel}${country}${original}</div>
       </div>
     </div>`;
   }).join('');
@@ -2545,7 +2604,7 @@ function renderTmdbResults(results, hasError, contentType = getFormContentType()
 async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
   const box = document.getElementById('tmdbResults');
   const spinner = document.getElementById('tmdbSearchSpinner');
-  const normalizedType = contentType === 'movie' ? 'movie' : 'series';
+  const normalizedType = contentType === 'movie' ? 'movie' : (contentType === 'anime' ? 'anime' : 'series');
   const endpoint = normalizedType === 'movie' ? 'movie' : 'tv';
   spinner.classList.add('visible');
 
@@ -2567,8 +2626,8 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
     updateContentTypeFormUI(normalizedType, Boolean(editingId));
     document.getElementById('inputName').value = normalizedType === 'movie' ? (d.title || '') : (d.name || '');
 
-    // A origem é preenchida apenas para séries. Filmes não exibem nem exigem esse campo.
-    if (normalizedType === 'series') {
+    // A origem é preenchida para séries e animes. Filmes não exibem nem exigem esse campo.
+    if (normalizedType === 'series' || normalizedType === 'anime') {
       const countryCodes = d.origin_country || [];
       const typeMapped = mapTmdbCountry(countryCodes);
       if (typeMapped) {
@@ -2622,7 +2681,7 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
     showToast(
       importedPlatforms.length
         ? `Dados e plataformas importados do TMDB.`
-        : `Dados do ${normalizedType === 'movie' ? 'filme' : 'série'} importados do TMDB.`,
+        : `Dados do ${normalizedType === 'movie' ? 'filme' : (normalizedType === 'anime' ? 'anime' : 'série')} importados do TMDB.`,
       'success'
     );
   } catch (e) {
@@ -2750,7 +2809,7 @@ function getContentCounts(items = series) {
   return items.reduce((counts, item) => {
     counts[getContentType(item)] += 1;
     return counts;
-  }, { series: 0, movie: 0 });
+  }, { series: 0, movie: 0, anime: 0 });
 }
 
 function render() {
@@ -2775,6 +2834,7 @@ function render() {
     const parts = [];
     if (counts.series) parts.push(`${counts.series} ${counts.series === 1 ? 'série' : 'séries'}`);
     if (counts.movie) parts.push(`${counts.movie} ${counts.movie === 1 ? 'filme' : 'filmes'}`);
+    if (counts.anime) parts.push(`${counts.anime} ${counts.anime === 1 ? 'anime' : 'animes'}`);
     document.getElementById('navCount').textContent = parts.join(' · ');
   }
 
@@ -2803,7 +2863,7 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
         <h3>Sua lista está vazia</h3>
-        <p>Comece adicionando uma série ou um filme. O TMDB pode preencher automaticamente o pôster, a sinopse e os gêneros.</p>
+        <p>Comece adicionando uma série, um filme ou um anime. O TMDB pode preencher automaticamente o pôster, a sinopse e os gêneros.</p>
         <div class="empty-actions">
           <button class="btn btn-primary" onclick="openContentTypeChooser()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -2820,7 +2880,7 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
         <h3>Nenhum resultado</h3>
-        <p>Nenhuma série ou filme corresponde aos filtros ou à pesquisa atual.</p>
+        <p>Nenhuma série, filme ou anime corresponde aos filtros ou à pesquisa atual.</p>
         <div class="empty-actions"><button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button></div>
       </div>`;
     return;
@@ -2909,12 +2969,13 @@ function renderCard(s, idx) {
   const contentType = getContentType(s);
   const contentTypeLabel = getContentTypeLabel(s);
   const contentTypeBadge = `<span class="badge badge-content-type" data-content-type="${contentType}">${contentTypeLabel}</span>`;
-  const flag = contentType === 'series' ? (COUNTRY_FLAG[s.type] || '') : '';
+  const hasOrigin = contentType === 'series' || contentType === 'anime';
+  const flag = hasOrigin ? (COUNTRY_FLAG[s.type] || '') : '';
   const year = getSeriesYear(s);
   const yearBadgeGrid = year ? `<span class="badge badge-year">${year}</span>` : '';
   const platforms = getSeriesPlatforms(s);
 
-  const originBadge = contentType === 'series' && s.type
+  const originBadge = hasOrigin && s.type
     ? `<span class="badge badge-type" title="Origem: ${escHtml(s.type)}">${flag ? `${flag} ` : ''}${escHtml(s.type)}</span>`
     : '';
 
@@ -2995,8 +3056,9 @@ function getFiltered() {
       if (!s.name.toLowerCase().includes(q)) return false;
     }
     if (filters.contentType.length && !filters.contentType.includes(getContentType(s))) return false;
-    // O filtro de origem se aplica somente às séries.
-    if (filters.type.length && (getContentType(s) !== 'series' || !filters.type.includes(s.type))) return false;
+    // O filtro de origem se aplica às séries e aos animes.
+    const sHasOrigin = getContentType(s) === 'series' || getContentType(s) === 'anime';
+    if (filters.type.length && (!sHasOrigin || !filters.type.includes(s.type))) return false;
     if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
     if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
     return true;
@@ -3143,7 +3205,7 @@ function openAddModal(contentType = 'series') {
   currentPosterData = null;
   pendingTmdb = null;
   document.getElementById('editId').value = '';
-  document.getElementById('inputContentType').value = contentType === 'movie' ? 'movie' : 'series';
+  document.getElementById('inputContentType').value = contentType === 'movie' ? 'movie' : (contentType === 'anime' ? 'anime' : 'series');
   document.getElementById('inputName').value = '';
   document.getElementById('inputType').value = '';
   document.querySelectorAll('.platform-chip.selected').forEach(chip => chip.classList.remove('selected'));
@@ -3220,13 +3282,14 @@ async function saveSeries() {
   );
   if (duplicate) {
     const inputName = document.getElementById('inputName');
-    showToast(`“${duplicate.name}” já está na sua lista de ${contentType === 'movie' ? 'filmes' : 'séries'}.`, 'error');
+    const duplicateListLabel = contentType === 'movie' ? 'filmes' : (contentType === 'anime' ? 'animes' : 'séries');
+    showToast(`“${duplicate.name}” já está na sua lista de ${duplicateListLabel}.`, 'error');
     inputName.focus();
     inputName.select();
     return;
   }
 
-  if (contentType === 'series' && !type) { showToast('Selecione a origem.', 'error'); return; }
+  if ((contentType === 'series' || contentType === 'anime') && !type) { showToast('Selecione a origem.', 'error'); return; }
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
   if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
@@ -3365,7 +3428,7 @@ function drawRandomSeries() {
   if (!candidates.length) {
     const message = series.length
       ? 'Nenhum título corresponde à pesquisa ou aos filtros atuais.'
-      : 'Adicione pelo menos uma série ou filme antes de sortear.';
+      : 'Adicione pelo menos uma série, filme ou anime antes de sortear.';
     showToast(message, 'error');
     return;
   }
@@ -3461,7 +3524,7 @@ function openDetail(id, fromRandomDraw = false) {
       label: 'Ano',
       value: detailYear
     } : null,
-    detailContentType === 'series' && s.type ? {
+    (detailContentType === 'series' || detailContentType === 'anime') && s.type ? {
       label: 'Origem',
       value: s.type
     } : null
@@ -3555,7 +3618,11 @@ async function deleteSeries(id) {
     series = series.filter(entry => entry.id !== id);
     if (tmdbCache[id]) { delete tmdbCache[id]; saveTmdbCache(); }
     closeModal('confirmModal');
-    showToast(getContentType(item) === 'movie' ? 'Filme excluído.' : 'Série excluída.', 'info');
+    const deletedType = getContentType(item);
+    showToast(
+      deletedType === 'movie' ? 'Filme excluído.' : (deletedType === 'anime' ? 'Anime excluído.' : 'Série excluída.'),
+      'info'
+    );
     render();
   } catch (error) {
     console.error(error);
@@ -3682,9 +3749,9 @@ document.addEventListener('keydown', e => {
 
 // ── CONTENT TYPE INPUT ──
 document.getElementById('inputContentType').addEventListener('change', event => {
-  // Ao trocar de filme para série, peça uma origem válida em vez de manter
+  // Ao trocar de filme para série/anime, peça uma origem válida em vez de manter
   // o valor interno usado pelos filmes.
-  if (event.target.value === 'series') {
+  if (event.target.value !== 'movie') {
     document.getElementById('inputType').value = '';
   }
   pendingTmdb = null;
