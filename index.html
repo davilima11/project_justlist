@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0d0d" />
-  <title>JustList — Séries e Filmes</title>
+  <title>JustList — Séries, Filmes, Animes e Leituras</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23E50914'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='18' fill='white'>J</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -619,6 +619,9 @@
       border-color: rgba(216, 180, 254, 0.26);
       box-shadow: 0 1px 5px rgba(124, 58, 237, 0.12), 0 1px 4px rgba(0,0,0,0.18);
     }
+    .badge-content-type[data-content-type="manga"] { background: rgba(5,150,105,0.24); color:#fff; border-color:rgba(110,231,183,0.28); }
+    .badge-content-type[data-content-type="manhwa"] { background: rgba(2,132,199,0.24); color:#fff; border-color:rgba(125,211,252,0.28); }
+    .badge-content-type[data-content-type="manhua"] { background: rgba(219,39,119,0.24); color:#fff; border-color:rgba(249,168,212,0.28); }
     .badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); }
     .badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); }
 
@@ -699,6 +702,9 @@
       border-color: rgba(216, 180, 254, 0.28);
       box-shadow: 0 2px 8px rgba(124, 58, 237, 0.14), 0 2px 8px rgba(0,0,0,0.24);
     }
+    .card-poster-badges .badge-content-type[data-content-type="manga"] { background:rgba(5,150,105,0.30); border-color:rgba(110,231,183,0.30); }
+    .card-poster-badges .badge-content-type[data-content-type="manhwa"] { background:rgba(2,132,199,0.30); border-color:rgba(125,211,252,0.30); }
+    .card-poster-badges .badge-content-type[data-content-type="manhua"] { background:rgba(219,39,119,0.30); border-color:rgba(249,168,212,0.30); }
 
     .card-poster-badges .badge-year {
       position: static;
@@ -1275,6 +1281,9 @@
       border-color: rgba(216, 180, 254, 0.28);
       box-shadow: 0 2px 10px rgba(124, 58, 237, 0.12), 0 2px 10px rgba(0,0,0,0.26);
     }
+    .detail-content-type-overlay[data-content-type="manga"] { background:rgba(5,150,105,0.30); border-color:rgba(110,231,183,0.30); }
+    .detail-content-type-overlay[data-content-type="manhwa"] { background:rgba(2,132,199,0.30); border-color:rgba(125,211,252,0.30); }
+    .detail-content-type-overlay[data-content-type="manhua"] { background:rgba(219,39,119,0.30); border-color:rgba(249,168,212,0.30); }
 
     .detail-poster-gradient {
       position: absolute;
@@ -1338,6 +1347,9 @@
       color: #fff;
       border-color: rgba(216, 180, 254, 0.2);
     }
+    .detail-badge-content-type[data-content-type="manga"] { background:rgba(5,150,105,0.14); color:#fff; border-color:rgba(110,231,183,0.22); }
+    .detail-badge-content-type[data-content-type="manhwa"] { background:rgba(2,132,199,0.14); color:#fff; border-color:rgba(125,211,252,0.22); }
+    .detail-badge-content-type[data-content-type="manhua"] { background:rgba(219,39,119,0.14); color:#fff; border-color:rgba(249,168,212,0.22); }
     .detail-badge-platform { background: rgba(255,255,255,0.08); color: var(--text-muted); border: 1px solid var(--border); }
     .detail-badge-genre { background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border); }
 
@@ -1529,10 +1541,10 @@
     }
 
     /* ── CONTENT TYPE CHOOSER ── */
-    .content-type-modal { max-width: 560px; }
+    .content-type-modal { max-width: 660px; }
     .content-type-options {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       padding: 22px 24px 26px;
     }
@@ -1575,6 +1587,32 @@
       background: rgba(124,58,237,0.14);
       color: #7c3aed;
     }
+    .content-type-option.reading .content-type-option-icon {
+      background: rgba(5,150,105,0.14);
+      color: #10b981;
+    }
+    .reading-fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .reading-fields-grid .form-group { margin-bottom: 0; }
+    .reading-fields-section {
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(5,150,105,0.045);
+    }
+    .reading-fields-title {
+      margin-bottom: 12px;
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    @media (max-width: 520px) { .reading-fields-grid { grid-template-columns: 1fr; } }
     .content-type-option strong { font-size: 15px; }
     .content-type-option span { font-size: 11px; line-height: 1.45; color: var(--text-dim); }
 
@@ -1637,7 +1675,7 @@
       to { opacity: 0; transform: translateY(10px); }
     }
 
-    /* ── TMDB SEARCH BLOCK ── */
+    /* ── EXTERNAL SEARCH BLOCK (TMDB / ANILIST) ── */
     .tmdb-search-block {
       background: linear-gradient(135deg, rgba(229,9,20,0.08), rgba(229,9,20,0.02));
       border: 1px solid rgba(229,9,20,0.28);
@@ -1870,7 +1908,7 @@
   </a>
   <div class="nav-search">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" id="searchInput" type="text" placeholder="Pesquisar séries e filmes..." autocomplete="off" />
+    <input class="search-input" id="searchInput" type="text" placeholder="Pesquisar séries, filmes, animes, mangás e manhwas..." autocomplete="off" />
     <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Limpar pesquisa">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
@@ -1904,6 +1942,9 @@
         <span class="chip" data-filter="contentType" data-value="series" onclick="toggleFilter(this)">Séries</span>
         <span class="chip" data-filter="contentType" data-value="movie" onclick="toggleFilter(this)">Filmes</span>
         <span class="chip" data-filter="contentType" data-value="anime" onclick="toggleFilter(this)">Animes</span>
+        <span class="chip" data-filter="contentType" data-value="manga" onclick="toggleFilter(this)">Mangás</span>
+        <span class="chip" data-filter="contentType" data-value="manhwa" onclick="toggleFilter(this)">Manhwas</span>
+        <span class="chip" data-filter="contentType" data-value="manhua" onclick="toggleFilter(this)">Manhuas</span>
       </div>
     </div>
 
@@ -2042,6 +2083,13 @@
         <strong>Adicionar anime</strong>
         <span>Pesquise animes no TMDB ou preencha os dados manualmente.</span>
       </button>
+      <button class="content-type-option reading" onclick="startAddContent('manga')">
+        <span class="content-type-option-icon">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5v-16Z"/></svg>
+        </span>
+        <strong>Adicionar mangá / manhwa</strong>
+        <span>Pesquise no AniList e importe capa, sinopse, autor e capítulos.</span>
+      </button>
     </div>
   </div>
 </div>
@@ -2064,10 +2112,13 @@
           <option value="series">Série</option>
           <option value="movie">Filme</option>
           <option value="anime">Anime</option>
+          <option value="manga">Mangá</option>
+          <option value="manhwa">Manhwa</option>
+          <option value="manhua">Manhua</option>
         </select>
       </div>
 
-      <!-- TMDB SEARCH -->
+      <!-- PESQUISA EXTERNA: TMDB OU ANILIST -->
       <div class="tmdb-search-block">
         <div class="tmdb-search-label">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -2148,28 +2199,61 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Plataformas <span style="color:var(--accent)">*</span></label>
+        <label class="form-label"><span id="platformFieldLabel">Plataformas</span> <span id="platformRequiredMark" style="color:var(--accent)">*</span></label>
         <div class="platform-chips" id="platformChips">
-          <span class="platform-chip" data-value="Netflix" onclick="togglePlatformChip(this)">Netflix</span>
-          <span class="platform-chip" data-value="Disney+" onclick="togglePlatformChip(this)">Disney+</span>
-          <span class="platform-chip" data-value="Prime Video" onclick="togglePlatformChip(this)">Prime Video</span>
-          <span class="platform-chip" data-value="Viki" onclick="togglePlatformChip(this)">Viki</span>
-          <span class="platform-chip" data-value="Telegram" onclick="togglePlatformChip(this)">Telegram</span>
-          <span class="platform-chip" data-value="iQIYI" onclick="togglePlatformChip(this)">iQIYI</span>
-          <span class="platform-chip" data-value="WeTV" onclick="togglePlatformChip(this)">WeTV</span>
-          <span class="platform-chip" data-value="Apple TV+" onclick="togglePlatformChip(this)">Apple TV+</span>
-          <span class="platform-chip" data-value="Max" onclick="togglePlatformChip(this)">Max</span>
-          <span class="platform-chip" data-value="Globoplay" onclick="togglePlatformChip(this)">Globoplay</span>
-          <span class="platform-chip" data-value="Paramount+" onclick="togglePlatformChip(this)">Paramount+</span>
-          <span class="platform-chip" data-value="Crunchyroll" onclick="togglePlatformChip(this)">Crunchyroll</span>
-          <span class="platform-chip" data-value="Pluto TV" onclick="togglePlatformChip(this)">Pluto TV</span>
-          <span class="platform-chip" data-value="MUBI" onclick="togglePlatformChip(this)">MUBI</span>
-          <span class="platform-chip" data-value="Claro tv+" onclick="togglePlatformChip(this)">Claro tv+</span>
-          <span class="platform-chip" data-value="Looke" onclick="togglePlatformChip(this)">Looke</span>
-          <span class="platform-chip" data-value="Outros" onclick="togglePlatformChip(this)">Outros</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Netflix" onclick="togglePlatformChip(this)">Netflix</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Disney+" onclick="togglePlatformChip(this)">Disney+</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Prime Video" onclick="togglePlatformChip(this)">Prime Video</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Viki" onclick="togglePlatformChip(this)">Viki</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Telegram" onclick="togglePlatformChip(this)">Telegram</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="iQIYI" onclick="togglePlatformChip(this)">iQIYI</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="WeTV" onclick="togglePlatformChip(this)">WeTV</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Apple TV+" onclick="togglePlatformChip(this)">Apple TV+</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Max" onclick="togglePlatformChip(this)">Max</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Globoplay" onclick="togglePlatformChip(this)">Globoplay</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Paramount+" onclick="togglePlatformChip(this)">Paramount+</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Crunchyroll" onclick="togglePlatformChip(this)">Crunchyroll</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Pluto TV" onclick="togglePlatformChip(this)">Pluto TV</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="MUBI" onclick="togglePlatformChip(this)">MUBI</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Claro tv+" onclick="togglePlatformChip(this)">Claro tv+</span>
+          <span class="platform-chip" data-media-kind="screen" data-value="Looke" onclick="togglePlatformChip(this)">Looke</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="NexusToons" onclick="togglePlatformChip(this)">NexusToons</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="MangásTop" onclick="togglePlatformChip(this)">MangásTop</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="LycanToons" onclick="togglePlatformChip(this)">LycanToons</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="ToonsLivre" onclick="togglePlatformChip(this)">ToonsLivre</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="MangaOnline" onclick="togglePlatformChip(this)">MangaOnline</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="FlowerMangas" onclick="togglePlatformChip(this)">FlowerMangas</span>
+          <span class="platform-chip" data-media-kind="reading" data-value="Outros" onclick="togglePlatformChip(this)">Outros</span>
+          <span class="platform-chip" data-media-kind="both" data-value="Outros" onclick="togglePlatformChip(this)">Outros</span>
         </div>
-        <div style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.</div>
+        <div id="platformFieldHint" style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.</div>
         <div id="tmdbPlatformStatus" style="display:none;margin-top:7px;font-size:11px;line-height:1.45"></div>
+      </div>
+
+      <div class="reading-fields-section" id="readingFields" style="display:none">
+        <div class="reading-fields-title">Progresso de leitura</div>
+        <div class="form-group">
+          <label class="form-label" for="inputAuthor">Autor / Artista</label>
+          <input class="form-input" id="inputAuthor" type="text" placeholder="Ex: Chugong, DUBU" />
+        </div>
+        <div class="reading-fields-grid">
+          <div class="form-group">
+            <label class="form-label" for="inputChapters">Total de capítulos</label>
+            <input class="form-input" id="inputChapters" type="number" min="0" step="1" placeholder="Ex: 179" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inputCurrentChapter">Capítulo atual</label>
+            <input class="form-input" id="inputCurrentChapter" type="number" min="0" step="0.1" placeholder="Ex: 87" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inputReadingStatus">Meu status</label>
+            <select class="form-select" id="inputReadingStatus">
+              <option value="quero_ler">Quero ler</option>
+              <option value="lendo">Lendo</option>
+              <option value="concluido">Concluído</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -2223,7 +2307,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- FAB (mobile) -->
-<button class="fab" id="fab" onclick="openContentTypeChooser()" aria-label="Adicionar série, filme ou anime">
+<button class="fab" id="fab" onclick="openContentTypeChooser()" aria-label="Adicionar série, filme, anime, mangá ou manhwa">
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 
@@ -2249,6 +2333,9 @@ const TMDB_IMG_THUMB = 'https://image.tmdb.org/t/p/w185';
 const TMDB_IMG_POSTER = 'https://image.tmdb.org/t/p/w500';
 const TMDB_LANG = 'pt-BR';
 const TMDB_CACHE_KEY = 'justlist_tmdb_cache_v1';
+const ANILIST_API = 'https://graphql.anilist.co';
+const READING_CONTENT_TYPES = new Set(['manga', 'manhwa', 'manhua']);
+const READING_PLATFORMS = new Set(['NexusToons', 'MangásTop', 'LycanToons', 'ToonsLivre', 'MangaOnline', 'FlowerMangas', 'Outros']);
 
 // Mapa de gêneros TMDB (TV) -> gêneros do JustList
 const TMDB_GENRE_MAP = {
@@ -2279,6 +2366,13 @@ const TMDB_GENRE_MAP = {
   10768: ['Militar', 'Político'],        // War & Politics
 };
 
+const ANILIST_GENRE_MAP = {
+  Action: 'Ação', Adventure: 'Aventura', Comedy: 'Comédia', Drama: 'Drama',
+  Fantasy: 'Fantasia', Horror: 'Terror', Mystery: 'Mistério', Psychological: 'Psicológico',
+  Romance: 'Romance', 'Sci-Fi': 'Ficção científica', 'Slice of Life': 'Vida',
+  Sports: 'Esportes', Supernatural: 'Sobrenatural', Thriller: 'Suspense'
+};
+
 let tmdbCache = {};
 try { tmdbCache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch(e) { tmdbCache = {}; }
 function saveTmdbCache() { localStorage.setItem(TMDB_CACHE_KEY, JSON.stringify(tmdbCache)); }
@@ -2297,7 +2391,15 @@ function getContentType(item) {
   const raw = String((item && (item.content_type || item.contentType)) || 'series').toLowerCase();
   if (raw === 'movie' || raw === 'filme') return 'movie';
   if (raw === 'anime') return 'anime';
+  if (raw === 'manga' || raw === 'mangá') return 'manga';
+  if (raw === 'manhwa') return 'manhwa';
+  if (raw === 'manhua') return 'manhua';
   return 'series';
+}
+
+function isReadingContentType(itemOrType) {
+  const type = typeof itemOrType === 'string' ? getContentType({ content_type: itemOrType }) : getContentType(itemOrType);
+  return READING_CONTENT_TYPES.has(type);
 }
 
 function getContentTypeLabel(itemOrType) {
@@ -2306,7 +2408,22 @@ function getContentTypeLabel(itemOrType) {
     : getContentType(itemOrType);
   if (type === 'movie') return 'Filme';
   if (type === 'anime') return 'Anime';
+  if (type === 'manga') return 'Mangá';
+  if (type === 'manhwa') return 'Manhwa';
+  if (type === 'manhua') return 'Manhua';
   return 'Série';
+}
+
+function normalizeReadingStatus(status) {
+  return ['quero_ler', 'lendo', 'concluido'].includes(status) ? status : 'quero_ler';
+}
+
+function getReadingStatusLabel(status) {
+  return ({ quero_ler: 'Quero ler', lendo: 'Lendo', concluido: 'Concluído' })[normalizeReadingStatus(status)] || '';
+}
+
+function getPublicationStatusLabel(status) {
+  return ({ FINISHED: 'Concluído', RELEASING: 'Em publicação', NOT_YET_RELEASED: 'Ainda não lançado', CANCELLED: 'Cancelado', HIATUS: 'Em hiato' })[status] || status || '';
 }
 
 // Retorna o ano lendo do registro ou do cache TMDB.
@@ -2320,6 +2437,8 @@ function getSeriesYear(s) {
 }
 
 let pendingTmdb = null; // {tmdb_id, year, content_type} para anexar ao salvar
+let pendingAniList = null; // metadados importados para uma leitura
+let aniListResultsById = new Map();
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 
@@ -2371,6 +2490,32 @@ function mapTmdbProviderName(providerName) {
   return original;
 }
 
+function ensureGenreOption(genre) {
+  const value = String(genre || '').trim();
+  if (!value) return;
+
+  const formContainer = document.getElementById('genreChips');
+  if (formContainer && !Array.from(formContainer.querySelectorAll('.genre-chip')).some(chip => chip.dataset.value === value)) {
+    const chip = document.createElement('span');
+    chip.className = 'genre-chip';
+    chip.dataset.value = value;
+    chip.textContent = value;
+    chip.addEventListener('click', () => toggleGenreChip(chip));
+    formContainer.appendChild(chip);
+  }
+
+  const filterContainer = document.getElementById('filterGenre');
+  if (filterContainer && !Array.from(filterContainer.querySelectorAll('.chip')).some(chip => chip.dataset.value === value)) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.dataset.filter = 'genre';
+    chip.dataset.value = value;
+    chip.textContent = value;
+    chip.addEventListener('click', () => toggleFilter(chip));
+    filterContainer.appendChild(chip);
+  }
+}
+
 function ensurePlatformOption(platform) {
   const value = String(platform || '').trim();
   if (!value) return;
@@ -2379,6 +2524,7 @@ function ensurePlatformOption(platform) {
   if (formContainer && !Array.from(formContainer.querySelectorAll('.platform-chip')).some(chip => chip.dataset.value === value)) {
     const chip = document.createElement('span');
     chip.className = 'platform-chip';
+    chip.dataset.mediaKind = READING_PLATFORMS.has(value) ? 'reading' : 'both';
     chip.dataset.value = value;
     chip.textContent = value;
     chip.addEventListener('click', () => togglePlatformChip(chip));
@@ -2398,7 +2544,11 @@ function ensurePlatformOption(platform) {
 }
 
 function syncPlatformOptionsFromSavedItems() {
-  series.forEach(item => getSeriesPlatforms(item).forEach(ensurePlatformOption));
+  series.forEach(item => {
+    getSeriesPlatforms(item).forEach(ensurePlatformOption);
+    const genres = Array.isArray(item.genres) ? item.genres : [];
+    genres.forEach(ensureGenreOption);
+  });
 }
 
 function setTmdbPlatformStatus(message = '', state = 'info') {
@@ -2452,12 +2602,20 @@ function applyTmdbPlatforms(platforms) {
 function getSeriesPlatforms(item) {
   if (!item) return [];
 
+  const normalizePlatforms = values => {
+    const cleaned = values.map(String).map(value => value.trim()).filter(Boolean);
+    const normalized = isReadingContentType(item)
+      ? cleaned.map(value => READING_PLATFORMS.has(value) ? value : 'Outros')
+      : cleaned;
+    return [...new Set(normalized)];
+  };
+
   if (Array.isArray(item.platforms)) {
-    return [...new Set(item.platforms.map(String).map(value => value.trim()).filter(Boolean))];
+    return normalizePlatforms(item.platforms);
   }
 
   if (Array.isArray(item.platform)) {
-    return [...new Set(item.platform.map(String).map(value => value.trim()).filter(Boolean))];
+    return normalizePlatforms(item.platform);
   }
 
   const raw = typeof item.platform === 'string' ? item.platform.trim() : '';
@@ -2467,7 +2625,7 @@ function getSeriesPlatforms(item) {
     try {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        return [...new Set(parsed.map(String).map(value => value.trim()).filter(Boolean))];
+        return normalizePlatforms(parsed);
       }
     } catch (error) {
       console.warn('Não foi possível interpretar as plataformas salvas:', error);
@@ -2475,7 +2633,7 @@ function getSeriesPlatforms(item) {
   }
 
   // Também reconhece listas antigas digitadas com vírgula, ponto e vírgula ou ||.
-  return [...new Set(raw.split(/\s*(?:\|\||,|;)\s*/).map(value => value.trim()).filter(Boolean))];
+  return normalizePlatforms(raw.split(/\s*(?:\|\||,|;)\s*/));
 }
 
 function serializePlatforms(platforms) {
@@ -2485,40 +2643,57 @@ function serializePlatforms(platforms) {
 function getFormContentType() {
   const select = document.getElementById('inputContentType');
   const value = select && select.value;
-  return value === 'movie' || value === 'anime' ? value : 'series';
+  return ['movie', 'anime', 'manga', 'manhwa', 'manhua'].includes(value) ? value : 'series';
 }
 
 function updateContentTypeFormUI(contentType, editing = false) {
-  const normalized = contentType === 'movie' ? 'movie' : (contentType === 'anime' ? 'anime' : 'series');
+  const normalized = getContentType({ content_type: contentType });
   const isMovie = normalized === 'movie';
   const isAnime = normalized === 'anime';
+  const isReading = isReadingContentType(normalized);
   const select = document.getElementById('inputContentType');
   const originGroup = document.getElementById('originFormGroup');
   const originSelect = document.getElementById('inputType');
+  const readingFields = document.getElementById('readingFields');
   if (select) select.value = normalized;
 
-  // Filmes não exigem país/origem. Séries e animes exigem. Mantemos "Outros"
-  // internamente para compatibilidade com a coluna antiga `type` do Supabase.
   if (originGroup) originGroup.style.display = isMovie ? 'none' : '';
+  if (readingFields) readingFields.style.display = isReading ? '' : 'none';
   if (isMovie && originSelect) originSelect.value = 'Outros';
-  // Animes costumam ter origem no Japão — pré-seleciona quando o campo ainda está vazio.
   if (isAnime && originSelect && !originSelect.value) originSelect.value = 'Japão';
+  if (isReading && originSelect && (!editing || !originSelect.value)) {
+    originSelect.value = normalized === 'manhwa' ? 'Coreia' : (normalized === 'manhua' ? 'China' : 'Japão');
+  }
 
-  const typeLabel = isMovie ? 'filme' : (isAnime ? 'anime' : 'série');
+  const typeLabel = getContentTypeLabel(normalized).toLowerCase();
   document.getElementById('formModalTitle').textContent = `${editing ? 'Editar' : 'Adicionar'} ${typeLabel}`;
-  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : (isAnime ? 'Nome do anime' : 'Nome da série');
-  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : (isAnime ? 'Ex: Attack on Titan' : 'Ex: Alchemy of Souls');
-  document.getElementById('inputSynopsis').placeholder = isMovie
-    ? 'Escreva uma breve descrição do filme...'
-    : (isAnime ? 'Escreva uma breve descrição do anime...' : 'Escreva uma breve descrição da série...');
-  document.getElementById('tmdbSearchLabelText').textContent = isMovie
-    ? 'Buscar filme no TMDB · preencher automaticamente'
-    : (isAnime ? 'Buscar anime no TMDB · preencher automaticamente' : 'Buscar série no TMDB · preencher automaticamente');
-  document.getElementById('tmdbSearchInput').placeholder = isMovie
-    ? 'Ex: Parasita, Duna, Interestelar...'
-    : (isAnime ? 'Ex: Naruto, One Piece, Jujutsu Kaisen...' : 'Ex: Goblin, Crash Landing on You...');
-}
+  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : (isAnime ? 'Nome do anime' : (isReading ? `Nome do ${typeLabel}` : 'Nome da série'));
+  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : (isAnime ? 'Ex: Attack on Titan' : (isReading ? 'Ex: Solo Leveling, Berserk, Omniscient Reader...' : 'Ex: Alchemy of Souls'));
+  document.getElementById('inputSynopsis').placeholder = `Escreva uma breve descrição do ${typeLabel}...`;
+  document.getElementById('tmdbSearchLabelText').textContent = isReading
+    ? 'Buscar no AniList · preencher automaticamente'
+    : (isMovie ? 'Buscar filme no TMDB · preencher automaticamente' : (isAnime ? 'Buscar anime no TMDB · preencher automaticamente' : 'Buscar série no TMDB · preencher automaticamente'));
+  document.getElementById('tmdbSearchInput').placeholder = isReading
+    ? 'Ex: Solo Leveling, Berserk, Tower of God...'
+    : (isMovie ? 'Ex: Parasita, Duna, Interestelar...' : (isAnime ? 'Ex: Naruto, One Piece, Jujutsu Kaisen...' : 'Ex: Goblin, Crash Landing on You...'));
 
+  const platformLabel = document.getElementById('platformFieldLabel');
+  const platformMark = document.getElementById('platformRequiredMark');
+  const platformHint = document.getElementById('platformFieldHint');
+  if (platformLabel) platformLabel.textContent = isReading ? 'Onde você lê' : 'Plataformas';
+  if (platformMark) platformMark.style.display = isReading ? 'none' : '';
+  if (platformHint) platformHint.textContent = isReading
+    ? 'Campo opcional. Selecione o site ou aplicativo onde você lê.'
+    : 'Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.';
+  setTmdbPlatformStatus('');
+
+  document.querySelectorAll('.platform-chip').forEach(chip => {
+    const mediaKind = chip.dataset.mediaKind || 'screen';
+    const visible = mediaKind === 'both' || (isReading ? mediaKind === 'reading' : mediaKind === 'screen');
+    chip.style.display = visible ? '' : 'none';
+    if (!visible) chip.classList.remove('selected');
+  });
+}
 async function tmdbSearch(query) {
   const resultsBox = document.getElementById('tmdbResults');
   const spinner = document.getElementById('tmdbSearchSpinner');
@@ -2692,6 +2867,167 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
   }
 }
 
+
+function mapAniListContentType(countryCode) {
+  if (countryCode === 'KR') return 'manhwa';
+  if (['CN', 'TW', 'HK'].includes(countryCode)) return 'manhua';
+  return 'manga';
+}
+
+function mapAniListCountry(countryCode) {
+  if (countryCode === 'KR') return 'Coreia';
+  if (['CN', 'TW', 'HK'].includes(countryCode)) return 'China';
+  if (countryCode === 'JP') return 'Japão';
+  return 'Outros';
+}
+
+function mapAniListGenres(genres) {
+  return [...new Set((genres || []).map(genre => ANILIST_GENRE_MAP[genre] || genre).filter(Boolean))];
+}
+
+function cleanAniListDescription(value) {
+  return String(value || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/~!|!~/g, '')
+    .replace(/__|\*\*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function getAniListAuthors(item) {
+  const edges = item && item.staff && Array.isArray(item.staff.edges) ? item.staff.edges : [];
+  return [...new Set(edges
+    .filter(edge => /story|art/i.test(edge.role || ''))
+    .map(edge => edge.node && edge.node.name && edge.node.name.full)
+    .filter(Boolean))].slice(0, 4).join(', ');
+}
+
+async function anilistSearch(query) {
+  const resultsBox = document.getElementById('tmdbResults');
+  const spinner = document.getElementById('tmdbSearchSpinner');
+  if (!query || query.trim().length < 2) {
+    resultsBox.classList.remove('visible');
+    return;
+  }
+
+  tmdbLastQuery = `anilist:${query}`;
+  const requestKey = tmdbLastQuery;
+  spinner.classList.add('visible');
+  resultsBox.innerHTML = Array(4).fill(`<div class="tmdb-skel-row"><div class="tmdb-skel-poster skeleton"></div><div class="tmdb-skel-info"><div class="skel-line skeleton w-80"></div><div class="skel-line skeleton w-50"></div></div></div>`).join('');
+  resultsBox.classList.add('visible');
+
+  const graphQuery = `
+    query ($search: String!) {
+      Page(page: 1, perPage: 12) {
+        media(search: $search, type: MANGA, sort: SEARCH_MATCH, isAdult: false) {
+          id
+          title { romaji english native userPreferred }
+          description(asHtml: false)
+          coverImage { large extraLarge }
+          genres
+          status
+          chapters
+          startDate { year }
+          countryOfOrigin
+          staff(perPage: 12) {
+            edges { role node { name { full } } }
+          }
+        }
+      }
+    }`;
+
+  try {
+    const response = await fetch(ANILIST_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ query: graphQuery, variables: { search: query.trim() } })
+    });
+    if (!response.ok) throw new Error(`AniList request failed: ${response.status}`);
+    const payload = await response.json();
+    if (payload.errors && payload.errors.length) throw new Error(payload.errors[0].message || 'AniList GraphQL error');
+    if (requestKey !== tmdbLastQuery) return;
+    renderAniListResults((payload.data && payload.data.Page && payload.data.Page.media) || []);
+  } catch (error) {
+    console.error(error);
+    resultsBox.innerHTML = `<div class="tmdb-empty">Erro ao buscar no AniList. Verifique sua conexão.</div>`;
+    resultsBox.classList.add('visible');
+  } finally {
+    spinner.classList.remove('visible');
+  }
+}
+
+function renderAniListResults(results) {
+  const box = document.getElementById('tmdbResults');
+  aniListResultsById.clear();
+  if (!results.length) {
+    box.innerHTML = `<div class="tmdb-empty">Nenhum mangá, manhwa ou manhua encontrado.</div>`;
+    box.classList.add('visible');
+    return;
+  }
+
+  box.innerHTML = results.slice(0, 10).map(item => {
+    aniListResultsById.set(String(item.id), item);
+    const name = item.title.english || item.title.userPreferred || item.title.romaji || item.title.native || 'Sem título';
+    const original = item.title.native && item.title.native !== name ? ` · ${escHtml(item.title.native)}` : '';
+    const type = mapAniListContentType(item.countryOfOrigin);
+    const year = item.startDate && item.startDate.year ? item.startDate.year : '—';
+    const poster = item.coverImage && (item.coverImage.large || item.coverImage.extraLarge);
+    const posterHtml = poster
+      ? `<img class="tmdb-result-poster" src="${poster}" alt="" loading="lazy" />`
+      : `<div class="tmdb-result-poster-placeholder">${posterFallbackIcon(16)}</div>`;
+    return `<div class="tmdb-result" onclick="selectAniListResult('${item.id}')">
+      ${posterHtml}
+      <div class="tmdb-result-info">
+        <div class="tmdb-result-name">${escHtml(name)}</div>
+        <div class="tmdb-result-meta">${year} · ${getContentTypeLabel(type)}${original}</div>
+      </div>
+    </div>`;
+  }).join('');
+  box.classList.add('visible');
+}
+
+function selectAniListResult(id) {
+  const item = aniListResultsById.get(String(id));
+  if (!item) return;
+
+  const contentType = mapAniListContentType(item.countryOfOrigin);
+  const name = item.title.english || item.title.userPreferred || item.title.romaji || item.title.native || '';
+  const mappedGenres = mapAniListGenres(item.genres || []);
+  mappedGenres.forEach(ensureGenreOption);
+
+  document.getElementById('inputContentType').value = contentType;
+  updateContentTypeFormUI(contentType, Boolean(editingId));
+  document.getElementById('inputName').value = name;
+  document.getElementById('inputType').value = mapAniListCountry(item.countryOfOrigin);
+  document.getElementById('inputSynopsis').value = cleanAniListDescription(item.description);
+  document.getElementById('inputAuthor').value = getAniListAuthors(item);
+  document.getElementById('inputChapters').value = Number.isInteger(item.chapters) ? item.chapters : '';
+
+  document.querySelectorAll('.genre-chip').forEach(chip => {
+    chip.classList.toggle('selected', mappedGenres.includes(chip.dataset.value));
+  });
+
+  const poster = item.coverImage && (item.coverImage.extraLarge || item.coverImage.large);
+  if (poster) {
+    currentPosterData = poster;
+    showPosterPreview(poster);
+  }
+
+  pendingAniList = {
+    year: item.startDate && item.startDate.year ? item.startDate.year : null,
+    publication_status: item.status || null
+  };
+
+  document.getElementById('tmdbSearchInput').value = '';
+  document.getElementById('tmdbResults').classList.remove('visible');
+  showToast(`Dados do ${getContentTypeLabel(contentType).toLowerCase()} importados do AniList.`, 'success');
+}
+
+function searchExternalCatalog(query) {
+  return isReadingContentType(getFormContentType()) ? anilistSearch(query) : tmdbSearch(query);
+}
+
 // ── SUPABASE ──
 // Troque pelos dados do seu projeto Supabase:
 // Project Settings > Data API > Project URL e anon/public key.
@@ -2717,12 +3053,12 @@ async function loadData() {
 
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
-    .select('id, name, content_type, type, genres, platform, synopsis, poster, year, created_at')
+.select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error(error);
-    showToast('Erro ao carregar do Supabase. Verifique se as colunas content_type e year foram criadas.', 'error');
+    showToast('Erro ao carregar os dados do Supabase.', 'error');
     series = [];
     return;
   }
@@ -2807,9 +3143,10 @@ function renderSkeletons(count = 12) {
 
 function getContentCounts(items = series) {
   return items.reduce((counts, item) => {
-    counts[getContentType(item)] += 1;
+    const type = getContentType(item);
+    counts[type] = (counts[type] || 0) + 1;
     return counts;
-  }, { series: 0, movie: 0, anime: 0 });
+  }, { series: 0, movie: 0, anime: 0, manga: 0, manhwa: 0, manhua: 0 });
 }
 
 function render() {
@@ -2831,10 +3168,9 @@ function render() {
   if (isLoading || series.length === 0) {
     document.getElementById('navCount').textContent = '';
   } else {
-    const parts = [];
-    if (counts.series) parts.push(`${counts.series} ${counts.series === 1 ? 'série' : 'séries'}`);
-    if (counts.movie) parts.push(`${counts.movie} ${counts.movie === 1 ? 'filme' : 'filmes'}`);
-    if (counts.anime) parts.push(`${counts.anime} ${counts.anime === 1 ? 'anime' : 'animes'}`);
+    const plural = { series: 'séries', movie: 'filmes', anime: 'animes', manga: 'mangás', manhwa: 'manhwas', manhua: 'manhuas' };
+    const singular = { series: 'série', movie: 'filme', anime: 'anime', manga: 'mangá', manhwa: 'manhwa', manhua: 'manhua' };
+    const parts = Object.keys(counts).filter(type => counts[type]).map(type => `${counts[type]} ${counts[type] === 1 ? singular[type] : plural[type]}`);
     document.getElementById('navCount').textContent = parts.join(' · ');
   }
 
@@ -2863,7 +3199,7 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
         <h3>Sua lista está vazia</h3>
-        <p>Comece adicionando uma série, um filme ou um anime. O TMDB pode preencher automaticamente o pôster, a sinopse e os gêneros.</p>
+        <p>Comece adicionando uma série, filme, anime, mangá ou manhwa. O TMDB e o AniList podem preencher os dados automaticamente.</p>
         <div class="empty-actions">
           <button class="btn btn-primary" onclick="openContentTypeChooser()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -2880,7 +3216,7 @@ function render() {
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
         <h3>Nenhum resultado</h3>
-        <p>Nenhuma série, filme ou anime corresponde aos filtros ou à pesquisa atual.</p>
+        <p>Nenhum título corresponde aos filtros ou à pesquisa atual.</p>
         <div class="empty-actions"><button class="btn btn-ghost" onclick="clearAll()">Limpar filtros e pesquisa</button></div>
       </div>`;
     return;
@@ -2969,7 +3305,7 @@ function renderCard(s, idx) {
   const contentType = getContentType(s);
   const contentTypeLabel = getContentTypeLabel(s);
   const contentTypeBadge = `<span class="badge badge-content-type" data-content-type="${contentType}">${contentTypeLabel}</span>`;
-  const hasOrigin = contentType === 'series' || contentType === 'anime';
+  const hasOrigin = contentType !== 'movie';
   const flag = hasOrigin ? (COUNTRY_FLAG[s.type] || '') : '';
   const year = getSeriesYear(s);
   const yearBadgeGrid = year ? `<span class="badge badge-year">${year}</span>` : '';
@@ -2977,6 +3313,13 @@ function renderCard(s, idx) {
 
   const originBadge = hasOrigin && s.type
     ? `<span class="badge badge-type" title="Origem: ${escHtml(s.type)}">${flag ? `${flag} ` : ''}${escHtml(s.type)}</span>`
+    : '';
+
+  const readingProgressBadge = isReadingContentType(contentType) && (s.current_chapter !== null && s.current_chapter !== undefined && s.current_chapter !== '')
+    ? `<span class="badge badge-type" title="Progresso de leitura">Cap. ${escHtml(s.current_chapter)}${s.chapters ? `/${escHtml(s.chapters)}` : ''}</span>`
+    : '';
+  const readingStatusBadge = isReadingContentType(contentType) && s.reading_status
+    ? `<span class="badge badge-type">${escHtml(getReadingStatusLabel(s.reading_status))}</span>`
     : '';
 
   const platformBadges = platforms.map(platform =>
@@ -2987,8 +3330,8 @@ function renderCard(s, idx) {
     `<span class="badge badge-genre" title="${escHtml(genre)}">${escHtml(genre)}</span>`
   ).join('');
 
-  const primaryMeta = originBadge || platformBadges
-    ? `<div class="card-meta-row card-meta-row-primary badge-overflow-row">${originBadge}${platformBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
+  const primaryMeta = originBadge || platformBadges || readingProgressBadge || readingStatusBadge
+    ? `<div class="card-meta-row card-meta-row-primary badge-overflow-row">${originBadge}${readingProgressBadge}${readingStatusBadge}${platformBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
     : '';
   const genreMeta = genreBadges
     ? `<div class="card-meta-row card-meta-row-genres badge-overflow-row">${genreBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
@@ -3056,8 +3399,8 @@ function getFiltered() {
       if (!s.name.toLowerCase().includes(q)) return false;
     }
     if (filters.contentType.length && !filters.contentType.includes(getContentType(s))) return false;
-    // O filtro de origem se aplica às séries e aos animes.
-    const sHasOrigin = getContentType(s) === 'series' || getContentType(s) === 'anime';
+    // O filtro de origem se aplica a todos os conteúdos, exceto filmes.
+    const sHasOrigin = getContentType(s) !== 'movie';
     if (filters.type.length && (!sHasOrigin || !filters.type.includes(s.type))) return false;
     if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
     if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
@@ -3204,12 +3547,17 @@ function openAddModal(contentType = 'series') {
   editingId = null;
   currentPosterData = null;
   pendingTmdb = null;
+  pendingAniList = null;
   document.getElementById('editId').value = '';
-  document.getElementById('inputContentType').value = contentType === 'movie' ? 'movie' : (contentType === 'anime' ? 'anime' : 'series');
+  document.getElementById('inputContentType').value = getContentType({ content_type: contentType });
   document.getElementById('inputName').value = '';
   document.getElementById('inputType').value = '';
   document.querySelectorAll('.platform-chip.selected').forEach(chip => chip.classList.remove('selected'));
   document.getElementById('inputSynopsis').value = '';
+  document.getElementById('inputAuthor').value = '';
+  document.getElementById('inputChapters').value = '';
+  document.getElementById('inputCurrentChapter').value = '';
+  document.getElementById('inputReadingStatus').value = 'quero_ler';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
@@ -3227,6 +3575,7 @@ function openEditModal(id) {
   editingId = id;
   currentPosterData = item.poster || null;
   pendingTmdb = null;
+  pendingAniList = null;
 
   const contentType = getContentType(item);
   document.getElementById('editId').value = id;
@@ -3240,6 +3589,10 @@ function openEditModal(id) {
   });
 
   document.getElementById('inputSynopsis').value = item.synopsis || '';
+  document.getElementById('inputAuthor').value = item.author || '';
+  document.getElementById('inputChapters').value = item.chapters ?? '';
+  document.getElementById('inputCurrentChapter').value = item.current_chapter ?? '';
+  document.getElementById('inputReadingStatus').value = normalizeReadingStatus(item.reading_status);
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
@@ -3264,10 +3617,15 @@ async function saveSeries() {
   const contentType = getFormContentType();
   const selectedType = document.getElementById('inputType').value;
   const type = contentType === 'movie' ? 'Outros' : selectedType;
+  const isReading = isReadingContentType(contentType);
   const synopsis = document.getElementById('inputSynopsis').value.trim();
   const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(chip => chip.dataset.value);
   const platforms = Array.from(document.querySelectorAll('.platform-chip.selected')).map(chip => chip.dataset.value);
   const contentLabel = getContentTypeLabel(contentType).toLowerCase();
+  const author = document.getElementById('inputAuthor').value.trim();
+  const chaptersValue = document.getElementById('inputChapters').value;
+  const currentChapterValue = document.getElementById('inputCurrentChapter').value;
+  const readingStatus = document.getElementById('inputReadingStatus').value;
 
   if (!name) {
     showToast(`Informe o nome do ${contentLabel}.`, 'error');
@@ -3282,21 +3640,21 @@ async function saveSeries() {
   );
   if (duplicate) {
     const inputName = document.getElementById('inputName');
-    const duplicateListLabel = contentType === 'movie' ? 'filmes' : (contentType === 'anime' ? 'animes' : 'séries');
+    const duplicateListLabel = `${getContentTypeLabel(contentType).toLowerCase()}s`;
     showToast(`“${duplicate.name}” já está na sua lista de ${duplicateListLabel}.`, 'error');
     inputName.focus();
     inputName.select();
     return;
   }
 
-  if ((contentType === 'series' || contentType === 'anime') && !type) { showToast('Selecione a origem.', 'error'); return; }
+  if (contentType !== 'movie' && !type) { showToast('Selecione a origem.', 'error'); return; }
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
-  if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
+  if (!isReading && platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
   const existingItem = editingId
     ? series.find(item => String(item.id) === String(editingId))
     : null;
-  const importedYear = Number.parseInt(pendingTmdb && pendingTmdb.year, 10);
+  const importedYear = Number.parseInt((pendingAniList && pendingAniList.year) || (pendingTmdb && pendingTmdb.year), 10);
   const savedYear = Number.parseInt(existingItem ? getSeriesYear(existingItem) : '', 10);
   const year = Number.isFinite(importedYear) && importedYear > 0
     ? importedYear
@@ -3312,6 +3670,16 @@ async function saveSeries() {
     poster: currentPosterData,
     year
   };
+
+  if (isReading) {
+    payload.author = author || null;
+    payload.chapters = chaptersValue === '' ? null : Number.parseInt(chaptersValue, 10);
+    payload.current_chapter = currentChapterValue === '' ? null : Number.parseFloat(currentChapterValue);
+    payload.reading_status = normalizeReadingStatus(readingStatus);
+    payload.publication_status = pendingAniList && pendingAniList.publication_status
+      ? pendingAniList.publication_status
+      : (existingItem && existingItem.publication_status) || null;
+  }
 
   try {
     if (editingId) {
@@ -3334,6 +3702,7 @@ async function saveSeries() {
     }
 
     pendingTmdb = null;
+    pendingAniList = null;
     closeModal('formModal');
     render();
   } catch (error) {
@@ -3341,12 +3710,15 @@ async function saveSeries() {
     const errorText = String(error && (error.message || error.details || ''));
     const missingContentType = errorText.includes('content_type');
     const missingYear = errorText.includes('year');
+    const missingReadingColumns = ['author', 'chapters', 'current_chapter', 'reading_status', 'publication_status'].some(column => errorText.includes(column));
     showToast(
       missingContentType
         ? 'Crie a coluna content_type no Supabase antes de salvar.'
         : missingYear
           ? 'Crie a coluna year no Supabase antes de salvar o ano.'
-          : 'Erro ao salvar no Supabase.',
+          : missingReadingColumns
+            ? 'Crie as colunas de leitura no Supabase usando o SQL enviado nas instruções.'
+            : 'Erro ao salvar no Supabase.',
       'error'
     );
   }
@@ -3428,7 +3800,7 @@ function drawRandomSeries() {
   if (!candidates.length) {
     const message = series.length
       ? 'Nenhum título corresponde à pesquisa ou aos filtros atuais.'
-      : 'Adicione pelo menos uma série, filme ou anime antes de sortear.';
+      : 'Adicione pelo menos um título antes de sortear.';
     showToast(message, 'error');
     return;
   }
@@ -3509,7 +3881,7 @@ function openDetail(id, fromRandomDraw = false) {
 
   const platformBadges = platforms.length
     ? platforms.map(platform => `<span class="detail-badge detail-badge-platform">${escHtml(platform)}</span>`).join('')
-    : `<span class="detail-empty-value">Nenhuma plataforma informada.</span>`;
+    : `<span class="detail-empty-value">${isReadingContentType(detailContentType) ? 'Nenhum local de leitura informado.' : 'Nenhuma plataforma informada.'}</span>`;
 
   const synopsisHtml = s.synopsis
     ? `<p class="detail-synopsis">${escHtml(s.synopsis).replace(/\n/g, '<br>')}</p>`
@@ -3524,10 +3896,15 @@ function openDetail(id, fromRandomDraw = false) {
       label: 'Ano',
       value: detailYear
     } : null,
-    (detailContentType === 'series' || detailContentType === 'anime') && s.type ? {
+    detailContentType !== 'movie' && s.type ? {
       label: 'Origem',
       value: s.type
-    } : null
+    } : null,
+    isReadingContentType(detailContentType) && s.author ? { label: 'Autor / Artista', value: s.author } : null,
+    isReadingContentType(detailContentType) && s.current_chapter !== null && s.current_chapter !== undefined ? { label: 'Capítulo atual', value: String(s.current_chapter) } : null,
+    isReadingContentType(detailContentType) && s.chapters ? { label: 'Capítulos', value: String(s.chapters) } : null,
+    isReadingContentType(detailContentType) && s.reading_status ? { label: 'Meu status', value: getReadingStatusLabel(s.reading_status) } : null,
+    isReadingContentType(detailContentType) && s.publication_status ? { label: 'Publicação', value: getPublicationStatusLabel(s.publication_status) } : null
   ].filter(Boolean);
 
   const infoGridHtml = infoItems.map(item => `
@@ -3554,7 +3931,7 @@ function openDetail(id, fromRandomDraw = false) {
       <section class="detail-section">
         <div class="detail-section-heading">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4M7 11h10"/></svg>
-          Plataformas
+          ${isReadingContentType(detailContentType) ? 'Onde você lê' : 'Plataformas'}
         </div>
         <div class="detail-chip-list">${platformBadges}</div>
       </section>
@@ -3620,7 +3997,7 @@ async function deleteSeries(id) {
     closeModal('confirmModal');
     const deletedType = getContentType(item);
     showToast(
-      deletedType === 'movie' ? 'Filme excluído.' : (deletedType === 'anime' ? 'Anime excluído.' : 'Série excluída.'),
+      deletedType === 'series' ? 'Série excluída.' : `${getContentTypeLabel(deletedType)} excluído.`,
       'info'
     );
     render();
@@ -3749,12 +4126,11 @@ document.addEventListener('keydown', e => {
 
 // ── CONTENT TYPE INPUT ──
 document.getElementById('inputContentType').addEventListener('change', event => {
-  // Ao trocar de filme para série/anime, peça uma origem válida em vez de manter
-  // o valor interno usado pelos filmes.
   if (event.target.value !== 'movie') {
     document.getElementById('inputType').value = '';
   }
   pendingTmdb = null;
+  pendingAniList = null;
   tmdbLastQuery = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
@@ -3769,7 +4145,7 @@ document.getElementById('tmdbSearchInput').addEventListener('input', e => {
     document.getElementById('tmdbResults').classList.remove('visible');
     return;
   }
-  tmdbSearchTimer = setTimeout(() => tmdbSearch(val), 350);
+  tmdbSearchTimer = setTimeout(() => searchExternalCatalog(val), 350);
 });
 
 // ── SEARCH INPUT ──
