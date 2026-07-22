@@ -1,1 +1,23 @@
-{"name":"design-then-build-preview","private":true,"version":"0.0.0","type":"module","scripts":{"dev":"vite","build":"tsc -b && vite build","typecheck":"tsc -b --pretty false","preview":"vite preview"},"dependencies":{"@tailwindcss/vite":"latest","@vitejs/plugin-react":"latest","framer-motion":"latest","react":"latest","react-dom":"latest","react-router-dom":"latest","tailwindcss":"latest","typescript":"latest","vite":"latest"},"devDependencies":{"@types/node":"latest","@types/react":"latest","@types/react-dom":"latest"}}
+{
+  "name": "justlist",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "node --check src/app.js && node --test",
+    "test": "node --test",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.109.0"
+  },
+  "devDependencies": {
+    "vite": "8.1.5"
+  }
+}
