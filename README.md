@@ -1,36 +1,75 @@
 # JustList
 
-**JustList** é uma plataforma para organizar suas séries favoritas, permitindo cadastrar títulos, gêneros, plataformas e pôsteres. Site estático, hospedado no GitHub Pages.
+Lista pessoal para organizar séries, filmes, animes, mangás, manhwas e manhuas. O catálogo é público para consulta, enquanto cadastro, edição e exclusão ficam disponíveis apenas para o proprietário autenticado.
 
-## Funcionalidades
+## Recursos
 
-- Cadastro de séries com nome, tipo (país), gêneros, plataforma, sinopse e pôster
-- **Integração com TMDB**: busca por título e preenche automaticamente nome, sinopse (em pt-BR), pôster oficial, país e gêneros
-- **Trailer automático**: quando o TMDB tiver trailer disponível, um botão aparece no modal de detalhe e abre o vídeo embutido (YouTube)
-- Filtros por tipo, gênero e plataforma
-- Pesquisa por nome
-- Visualização em grade ou lista
-- Tema claro/escuro
-- Persistência via Supabase (com fallback para localStorage)
-- Responsivo para mobile
+- busca e filtros por conteúdo, origem, gênero e plataforma;
+- visualização em grade ou lista e sorteio entre os resultados filtrados;
+- importação de metadados do TMDB para séries, filmes e animes;
+- importação de metadados do AniList para mangás, manhwas e manhuas;
+- pôster por arquivo ou URL, com validação, redimensionamento e conversão para WebP;
+- tema claro/escuro, layout responsivo e navegação por teclado;
+- persistência no Supabase com snapshot local para leitura em caso de falha;
+- login do proprietário por link mágico, sem senha;
+- build e deploy automatizados no GitHub Pages.
 
-## Como usar a integração TMDB
+## Stack
 
-1. Clique em **Adicionar**
-2. No topo do formulário, digite o nome da série em "Buscar no TMDB"
-3. Selecione o resultado correto — campos serão preenchidos automaticamente (pôster, sinopse, país, gêneros)
-4. Escolha a **plataforma** manualmente e clique em **Salvar**
-5. Se um trailer estiver disponível, ele aparece no modal de detalhe da série
+- HTML, CSS e JavaScript modular;
+- Vite 8;
+- Supabase JS 2;
+- Node.js 20.19+ na linha 20, ou 22.12+;
+- pnpm 11.
 
-## Configuração
+## Desenvolvimento local
 
-O arquivo `index.html` contém duas constantes que podem ser substituídas:
-
-```js
-// TMDB (obtenha sua chave em https://www.themoviedb.org/settings/api)
-const TMDB_API_KEY = '...';
-
-// Supabase (Project Settings > Data API)
-const SUPABASE_URL = '...';
-const SUPABASE_ANON_KEY = '...';
+```bash
+pnpm install
+pnpm dev
 ```
+
+Verificações antes de enviar uma mudança:
+
+```bash
+pnpm run check
+pnpm run build
+```
+
+`pnpm run check` valida a sintaxe e executa os testes unitários. O build de produção é gerado em `dist/`.
+
+## Estrutura
+
+```text
+index.html                 marcação e componentes da interface
+src/app.js                 estado, renderização e integrações
+src/styles.css             estilos e responsividade
+src/utils.js               normalização, sanitização e utilitários puros
+test/utils.test.js         testes unitários
+supabase/owner-rls.sql     políticas de acesso do banco
+.github/workflows/         build e deploy do GitHub Pages
+```
+
+## Configurar o Supabase com segurança
+
+A chave `anon` do Supabase aparece no navegador por definição. A proteção real dos dados deve ser feita por Row Level Security (RLS), e não escondendo essa chave.
+
+1. No Supabase, habilite o provedor de autenticação por e-mail.
+2. Em **Authentication → Users**, crie previamente o usuário proprietário. Depois desative novos cadastros públicos nas configurações de autenticação; o cliente também usa `shouldCreateUser: false`.
+3. Em **Authentication → URL Configuration**, use como URL do site `https://davilima11.github.io/project_justlist/` e inclua também `http://localhost:5173/` nas URLs de redirecionamento para desenvolvimento.
+4. Abra [`supabase/owner-rls.sql`](supabase/owner-rls.sql), substitua todas as ocorrências de `SEU_EMAIL@EXEMPLO.COM` pelo e-mail desse usuário e execute o script no SQL Editor.
+5. Abra o site, clique em **Entrar** e use exatamente o e-mail configurado na política.
+
+O script mantém leitura pública e bloqueia `insert`, `update` e `delete` para visitantes anônimos ou outras contas. Ele também remove políticas anteriores da tabela `series`; revise o arquivo antes de aplicá-lo se essa tabela for compartilhada com outro sistema.
+
+Por segurança, a sessão administrativa fica apenas na memória e termina ao recarregar a página. Essa escolha evita gravar o token no `localStorage` da origem compartilhada `davilima11.github.io`; para manter sessões persistentes com isolamento adequado, publique o site em um domínio próprio dedicado.
+
+## GitHub Pages
+
+O workflow publica `dist/` após cada push na branch `main`. Em **Settings → Pages → Build and deployment**, selecione **GitHub Actions** como origem. Isso é necessário porque o Vite precisa executar o build antes da publicação.
+
+## Integrações e chaves públicas
+
+As chamadas ao TMDB são feitas diretamente no navegador, então a chave da API também é pública no bundle. Para esconder essa credencial ou aplicar limites próprios, mova a chamada para uma função serverless/proxy. A integração com o AniList não usa chave.
+
+URLs de pôster são aceitas somente via HTTPS; conteúdo dinâmico é escapado antes de entrar no HTML e a página aplica uma Content Security Policy restritiva.
