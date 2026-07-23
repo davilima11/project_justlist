@@ -47,13 +47,33 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
       <span id="authButtonLabel">Conta</span>
     </button>
-    <label class="language-picker" for="languageSelect">
+    <div class="language-picker">
       <span class="sr-only" data-i18n="language">Idioma</span>
-      <select id="languageSelect" aria-label="Idioma" data-i18n-label="language">
-        <option value="pt-BR">PT</option>
-        <option value="en">EN</option>
+      <button class="language-trigger" id="languageTrigger" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Idioma" data-i18n-label="language">
+        <span id="languageTriggerLabel">BR</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="language-menu" id="languageMenu" role="listbox" aria-label="Opções de idioma" hidden>
+        <button type="button" role="option" data-language-option="en-US" aria-selected="false"><span>English</span><small>(en-US)</small></button>
+        <button type="button" role="option" data-language-option="es-ES" aria-selected="false"><span>Español</span><small>(es-ES)</small></button>
+        <button type="button" role="option" data-language-option="fr-FR" aria-selected="false"><span>Français</span><small>(fr-FR)</small></button>
+        <button type="button" role="option" data-language-option="it-IT" aria-selected="false"><span>Italiano</span><small>(it-IT)</small></button>
+        <button type="button" role="option" data-language-option="nl-NL" aria-selected="false"><span>Nederlands</span><small>(nl-NL)</small></button>
+        <button type="button" role="option" data-language-option="pt-PT" aria-selected="false"><span>Português</span><small>(pt-PT)</small></button>
+        <button type="button" role="option" data-language-option="pt-BR" aria-selected="false"><span>Português</span><small>(pt-BR)</small></button>
+        <button type="button" role="option" data-language-option="ro-RO" aria-selected="false"><span>Română</span><small>(ro-RO)</small></button>
+      </div>
+      <select class="language-native-select" id="languageSelect" aria-hidden="true" tabindex="-1">
+        <option value="en-US">English (en-US)</option>
+        <option value="es-ES">Español (es-ES)</option>
+        <option value="fr-FR">Français (fr-FR)</option>
+        <option value="it-IT">Italiano (it-IT)</option>
+        <option value="nl-NL">Nederlands (nl-NL)</option>
+        <option value="pt-PT">Português (pt-PT)</option>
+        <option value="pt-BR">Português (pt-BR)</option>
+        <option value="ro-RO">Română (ro-RO)</option>
       </select>
-    </label>
+    </div>
     <button class="theme-toggle" id="themeToggle" data-action="toggle-theme" aria-label="Ativar tema claro" title="Alternar tema">
       <svg id="themeIconDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
