@@ -50,6 +50,7 @@ let catalogDetailController = null;
 let formSessionId = 0;
 let currentUser = null;
 let isAuthReady = false;
+let isInitialDataLoad = true;
 let isRemoteDataWritable = false;
 let hasMoreRemoteData = false;
 let totalRemoteData = null;
@@ -781,7 +782,7 @@ async function initializeAuth() {
     currentUser = session?.user || null;
     isAuthReady = true;
     syncAuthUi();
-    if (event === 'INITIAL_SESSION') {
+    if (event === 'INITIAL_SESSION' || isInitialDataLoad) {
       render();
       return;
     }
@@ -955,12 +956,13 @@ async function loadData() {
     return;
   }
 
+  const pageOffset = remoteDataOffset;
   const { data, error, count } = await supabaseClient
     .from(SUPABASE_TABLE)
     .select('*', { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .range(remoteDataOffset, remoteDataOffset + DATA_PAGE_SIZE - 1);
+    .range(pageOffset, pageOffset + DATA_PAGE_SIZE - 1);
 
   if (error) {
     console.error(error);
@@ -981,8 +983,10 @@ async function loadData() {
   }
 
   const page = (data || []).map(normalizeSeriesItem).filter(Boolean);
-  series = remoteDataOffset === 0 ? page : [...series, ...page];
-  remoteDataOffset += page.length;
+  series = pageOffset === 0 ? page : [...series, ...page];
+  remoteDataOffset = pageOffset === 0
+    ? page.length
+    : Math.max(remoteDataOffset, pageOffset + page.length);
   totalRemoteData = count ?? series.length;
   hasMoreRemoteData = remoteDataOffset < totalRemoteData || (count === null && page.length === DATA_PAGE_SIZE);
   updateAvailableYearRange(series);
@@ -2653,6 +2657,7 @@ if (typeof ResizeObserver !== 'undefined') {
     showToast('Não foi possível inicializar a lista.', 'error');
   } finally {
     isLoading = false;
+    isInitialDataLoad = false;
     render();
   }
 })();
