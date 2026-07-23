@@ -1,23 +1,17 @@
 const CONTENT_TYPE_ALIASES = new Map([
+  ['series', 'series'],
+  ['série', 'series'],
+  ['serie', 'series'],
   ['movie', 'movie'],
   ['filme', 'movie'],
   ['anime', 'anime'],
-  ['manga', 'manga'],
-  ['mangá', 'manga'],
-  ['manhwa', 'manhwa'],
-  ['manhua', 'manhua'],
 ]);
 
 const CONTENT_TYPE_LABELS = {
   series: 'Série',
   movie: 'Filme',
   anime: 'Anime',
-  manga: 'Mangá',
-  manhwa: 'Manhwa',
-  manhua: 'Manhua',
 };
-
-const READING_CONTENT_TYPES = new Set(['manga', 'manhwa', 'manhua']);
 const SAFE_IMAGE_DATA_URL = /^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i;
 
 export function escapeHtml(value) {
@@ -42,7 +36,7 @@ export function getContentTypeLabel(itemOrType) {
 }
 
 export function isReadingContentType(itemOrType) {
-  return READING_CONTENT_TYPES.has(getContentType(itemOrType));
+  return false;
 }
 
 export function normalizeSeriesName(value) {

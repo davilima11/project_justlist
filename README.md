@@ -1,15 +1,15 @@
 # JustList
 
-Lista pessoal multiusuário para organizar séries, filmes, animes, mangás, manhwas e manhuas. Cada conta autenticada tem sua própria lista: os registros de uma pessoa não aparecem para outra.
+Lista pessoal multiusuário para organizar séries, filmes e animes. Cada conta autenticada tem sua própria lista: os registros de uma pessoa não aparecem para outra.
 
 ## Recursos
 
 - busca e filtros por conteúdo, origem, gênero e plataforma;
 - visualização em grade ou lista e sorteio entre os resultados filtrados;
 - importação de metadados do TMDB para séries, filmes e animes;
-- importação de metadados do AniList para mangás, manhwas e manhuas;
 - pôster por arquivo ou URL, com validação, redimensionamento e conversão para WebP;
 - tema claro/escuro, layout responsivo e navegação por teclado;
+- filtros recolhíveis, ordenados alfabeticamente e idioma português/inglês (português por padrão);
 - autenticação por link mágico, sem senha;
 - sessão persistida no navegador;
 - isolamento por usuário usando Supabase RLS;
@@ -169,6 +169,6 @@ O workflow publica `dist/` após cada push na branch `main`. Em **Settings → P
 
 ## Integrações e chaves públicas
 
-As chamadas ao TMDB são feitas diretamente no navegador, então a chave da API também é pública no bundle. Para esconder essa credencial ou aplicar limites próprios, mova a chamada para uma função serverless/proxy. A integração com o AniList não usa chave.
+As chamadas ao TMDB são feitas diretamente no navegador, então a chave da API também é pública no bundle. Para esconder essa credencial ou aplicar limites próprios, mova a chamada para uma função serverless/proxy.
 
 URLs de pôster são aceitas somente via HTTPS; conteúdo dinâmico é escapado antes de entrar no HTML e a página aplica uma Content Security Policy restritiva.
