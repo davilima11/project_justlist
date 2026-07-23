@@ -18,9 +18,9 @@ test('escapeHtml preserva valores numéricos e escapa marcação', () => {
 
 test('normaliza aliases e rótulos de conteúdo', () => {
   assert.equal(getContentType('filme'), 'movie');
-  assert.equal(getContentType({ content_type: 'Mangá' }), 'manga');
-  assert.equal(getContentTypeLabel('manhwa'), 'Manhwa');
-  assert.equal(isReadingContentType('manhua'), true);
+  assert.equal(getContentType({ content_type: 'desconhecido' }), 'series');
+  assert.equal(getContentTypeLabel('anime'), 'Anime');
+  assert.equal(isReadingContentType('anime'), false);
   assert.equal(isReadingContentType('series'), false);
 });
 

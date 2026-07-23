@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0d0d0d" />
   <meta name="color-scheme" content="dark light" />
-  <meta name="description" content="Organize séries, filmes, animes, mangás, manhwas e manhuas em uma lista pessoal." />
+  <meta name="description" content="Organize séries, filmes e animes em uma lista pessoal." />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws://localhost:* ws://127.0.0.1:* https://api.themoviedb.org https://graphql.anilist.co https://vwrjxsietwsybvpxmdvg.supabase.co wss://vwrjxsietwsybvpxmdvg.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'; worker-src 'self' blob:" />
-  <title>JustList — Séries, Filmes, Animes e Leituras</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws://localhost:* ws://127.0.0.1:* https://api.themoviedb.org https://vwrjxsietwsybvpxmdvg.supabase.co wss://vwrjxsietwsybvpxmdvg.supabase.co; object-src 'none'; base-uri 'none'; form-action 'self'; worker-src 'self' blob:" />
+  <title>JustList — Séries, Filmes e Animes</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23E50914'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='18' fill='white'>J</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,7 +17,7 @@
 </head>
 <body>
 
-<a class="skip-link" href="#mainContent">Pular para o conteúdo</a>
+<a class="skip-link" href="#mainContent" data-i18n="skip">Pular para o conteúdo</a>
 
 <!-- HEADER -->
 <header class="site-header">
@@ -27,8 +27,8 @@
   </a>
   <div class="nav-search">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-input" id="searchInput" aria-label="Pesquisar títulos" type="text" placeholder="Pesquisar séries, filmes, animes, mangás e manhwas..." autocomplete="off" />
-    <button class="search-clear" id="searchClear" data-action="clear-search" aria-label="Limpar pesquisa" title="Limpar pesquisa">
+    <input class="search-input" id="searchInput" aria-label="Pesquisar títulos" data-i18n-label="searchLabel" data-i18n-placeholder="searchPlaceholder" type="text" placeholder="Pesquisar séries, filmes e animes..." autocomplete="off" />
+    <button class="search-clear" id="searchClear" data-action="clear-search" aria-label="Limpar pesquisa" data-i18n-label="clearSearch" data-i18n-title="clearSearch" title="Limpar pesquisa">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
     <span class="kbd search-kbd" id="searchKbd" title="Pressione / para focar">/</span>
@@ -39,6 +39,13 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
       <span id="authButtonLabel">Conta</span>
     </button>
+    <label class="language-picker" for="languageSelect">
+      <span class="sr-only" data-i18n="language">Idioma</span>
+      <select id="languageSelect" aria-label="Idioma" data-i18n-label="language">
+        <option value="pt-BR">Português</option>
+        <option value="en">English</option>
+      </select>
+    </label>
     <button class="theme-toggle" id="themeToggle" data-action="toggle-theme" aria-label="Ativar tema claro" title="Alternar tema">
       <svg id="themeIconDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -54,83 +61,83 @@
   <div class="sidebar-overlay" id="sidebarOverlay" data-action="close-sidebar" aria-hidden="true"></div>
 
   <!-- SIDEBAR (FILTERS) -->
-  <aside class="sidebar" id="sidebar" aria-label="Filtros da lista" tabindex="-1">
+  <aside class="sidebar" id="sidebar" aria-label="Filtros da lista" data-i18n-label="filters" tabindex="-1">
     <div class="sidebar-header">
-      <span class="sidebar-title">Filtros</span>
-      <button class="filters-clear" id="filtersClear" data-action="clear-filters">Limpar</button>
+      <span class="sidebar-title" data-i18n="filters">Filtros</span>
+      <div class="sidebar-header-actions">
+        <button class="sidebar-collapse-btn" id="sidebarCollapseButton" type="button" data-action="toggle-filters" aria-controls="sidebar" aria-expanded="true" aria-label="Esconder filtros" data-i18n-label="hideFilters" data-i18n-title="hideFilters" title="Esconder filtros">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <button class="filters-clear" id="filtersClear" data-action="clear-filters" data-i18n="clear">Limpar</button>
+      </div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-group-label">Conteúdo</div>
+      <div class="filter-group-label" data-i18n="content">Conteúdo</div>
       <div class="filter-chips" id="filterContentType">
-        <button type="button" class="chip" data-filter="contentType" data-value="series" aria-pressed="false">Séries</button>
-        <button type="button" class="chip" data-filter="contentType" data-value="movie" aria-pressed="false">Filmes</button>
         <button type="button" class="chip" data-filter="contentType" data-value="anime" aria-pressed="false">Animes</button>
-        <button type="button" class="chip" data-filter="contentType" data-value="manga" aria-pressed="false">Mangás</button>
-        <button type="button" class="chip" data-filter="contentType" data-value="manhwa" aria-pressed="false">Manhwas</button>
-        <button type="button" class="chip" data-filter="contentType" data-value="manhua" aria-pressed="false">Manhuas</button>
+        <button type="button" class="chip" data-filter="contentType" data-value="movie" aria-pressed="false">Filmes</button>
+        <button type="button" class="chip" data-filter="contentType" data-value="series" aria-pressed="false">Séries</button>
       </div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-group-label">Origem</div>
+      <div class="filter-group-label" data-i18n="origin">Origem</div>
       <div class="filter-chips" id="filterType">
-        <button type="button" class="chip" data-filter="type" data-value="Coreia" aria-pressed="false">Coreia</button>
         <button type="button" class="chip" data-filter="type" data-value="China" aria-pressed="false">China</button>
-        <button type="button" class="chip" data-filter="type" data-value="Turquia" aria-pressed="false">Turquia</button>
+        <button type="button" class="chip" data-filter="type" data-value="Coreia" aria-pressed="false">Coreia</button>
+        <button type="button" class="chip" data-filter="type" data-value="EUA" aria-pressed="false">EUA</button>
         <button type="button" class="chip" data-filter="type" data-value="Japão" aria-pressed="false">Japão</button>
-        <button type="button" class="chip" data-filter="type" data-value="Tailândia" aria-pressed="false">Tailândia</button>
         <button type="button" class="chip" data-filter="type" data-value="Outros" aria-pressed="false">Outros</button>
+        <button type="button" class="chip" data-filter="type" data-value="Turquia" aria-pressed="false">Turquia</button>
       </div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-group-label">Gênero</div>
+      <div class="filter-group-label" data-i18n="genre">Gênero</div>
       <div class="filter-chips" id="filterGenre">
-        <button type="button" class="chip" data-filter="genre" data-value="Romance" aria-pressed="false">Romance</button>
         <button type="button" class="chip" data-filter="genre" data-value="Ação" aria-pressed="false">Ação</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Drama" aria-pressed="false">Drama</button>
         <button type="button" class="chip" data-filter="genre" data-value="Comédia" aria-pressed="false">Comédia</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Suspense" aria-pressed="false">Suspense</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Terror" aria-pressed="false">Terror</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Fantasia" aria-pressed="false">Fantasia</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Família" aria-pressed="false">Família</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Esportes" aria-pressed="false">Esportes</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Direito" aria-pressed="false">Direito</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Escola" aria-pressed="false">Escola</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Militar" aria-pressed="false">Militar</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Vida" aria-pressed="false">Vida</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Crime" aria-pressed="false">Crime</button>
         <button type="button" class="chip" data-filter="genre" data-value="Detetive" aria-pressed="false">Detetive</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Direito" aria-pressed="false">Direito</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Drama" aria-pressed="false">Drama</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Escola" aria-pressed="false">Escola</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Esportes" aria-pressed="false">Esportes</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Fantasia" aria-pressed="false">Fantasia</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Ficção científica" aria-pressed="false">Ficção científica</button>
         <button type="button" class="chip" data-filter="genre" data-value="Histórico" aria-pressed="false">Histórico</button>
         <button type="button" class="chip" data-filter="genre" data-value="Médico" aria-pressed="false">Médico</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Crime" aria-pressed="false">Crime</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Militar" aria-pressed="false">Militar</button>
         <button type="button" class="chip" data-filter="genre" data-value="Negócios" aria-pressed="false">Negócios</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Político" aria-pressed="false">Político</button>
-        <button type="button" class="chip" data-filter="genre" data-value="Ficção científica" aria-pressed="false">Ficção científica</button>
         <button type="button" class="chip" data-filter="genre" data-value="Outros" aria-pressed="false">Outros</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Político" aria-pressed="false">Político</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Romance" aria-pressed="false">Romance</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Suspense" aria-pressed="false">Suspense</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Terror" aria-pressed="false">Terror</button>
+        <button type="button" class="chip" data-filter="genre" data-value="Vida" aria-pressed="false">Vida</button>
       </div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-group-label">Plataforma</div>
+      <div class="filter-group-label" data-i18n="platform">Plataforma</div>
       <div class="filter-chips" id="filterPlatform">
-        <button type="button" class="chip" data-filter="platform" data-value="Netflix" aria-pressed="false">Netflix</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Disney+" aria-pressed="false">Disney+</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Prime Video" aria-pressed="false">Prime Video</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Viki" aria-pressed="false">Viki</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Telegram" aria-pressed="false">Telegram</button>
-        <button type="button" class="chip" data-filter="platform" data-value="iQIYI" aria-pressed="false">iQIYI</button>
-        <button type="button" class="chip" data-filter="platform" data-value="WeTV" aria-pressed="false">WeTV</button>
         <button type="button" class="chip" data-filter="platform" data-value="Apple TV+" aria-pressed="false">Apple TV+</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Max" aria-pressed="false">Max</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Globoplay" aria-pressed="false">Globoplay</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Paramount+" aria-pressed="false">Paramount+</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Crunchyroll" aria-pressed="false">Crunchyroll</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Pluto TV" aria-pressed="false">Pluto TV</button>
-        <button type="button" class="chip" data-filter="platform" data-value="MUBI" aria-pressed="false">MUBI</button>
         <button type="button" class="chip" data-filter="platform" data-value="Claro tv+" aria-pressed="false">Claro tv+</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Crunchyroll" aria-pressed="false">Crunchyroll</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Disney+" aria-pressed="false">Disney+</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Globoplay" aria-pressed="false">Globoplay</button>
+        <button type="button" class="chip" data-filter="platform" data-value="iQIYI" aria-pressed="false">iQIYI</button>
         <button type="button" class="chip" data-filter="platform" data-value="Looke" aria-pressed="false">Looke</button>
+        <button type="button" class="chip" data-filter="platform" data-value="MUBI" aria-pressed="false">MUBI</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Netflix" aria-pressed="false">Netflix</button>
         <button type="button" class="chip" data-filter="platform" data-value="Outros" aria-pressed="false">Outros</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Paramount+" aria-pressed="false">Paramount+</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Pluto TV" aria-pressed="false">Pluto TV</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Prime Video" aria-pressed="false">Prime Video</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Telegram" aria-pressed="false">Telegram</button>
+        <button type="button" class="chip" data-filter="platform" data-value="Viki" aria-pressed="false">Viki</button>
+        <button type="button" class="chip" data-filter="platform" data-value="WeTV" aria-pressed="false">WeTV</button>
       </div>
     </div>
   </aside>
@@ -140,34 +147,34 @@
     <h1 class="sr-only">Minha lista de séries, filmes, animes e leituras</h1>
     <div class="content-toolbar">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <button class="filter-toggle-btn" id="filterToggleBtn" aria-controls="sidebar" aria-expanded="false" data-action="toggle-sidebar">
+        <button class="filter-toggle-btn" id="filterToggleBtn" aria-controls="sidebar" aria-expanded="true" data-action="toggle-filters" aria-label="Esconder filtros" data-i18n-label="hideFilters">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
-          Filtros
+          <span id="filterToggleLabel" data-i18n="filters">Filtros</span>
           <span class="filter-count-badge" id="filterCountBadge">0</span>
         </button>
         <div class="results-info" id="resultsInfo" role="status" aria-live="polite" aria-atomic="true"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="view-toggle" role="group" aria-label="Modo de visualização">
-          <button class="view-btn active" id="viewGrid" aria-pressed="true" data-view="grid" title="Grade">
+          <button class="view-btn active" id="viewGrid" aria-pressed="true" data-view="grid" title="Grade" data-i18n-title="grid">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           </button>
-          <button class="view-btn" id="viewList" aria-pressed="false" data-view="list" title="Lista">
+          <button class="view-btn" id="viewList" aria-pressed="false" data-view="list" title="Lista" data-i18n-title="list">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
           </button>
         </div>
         <button class="btn btn-random" id="randomSeriesBtn" data-action="draw-random" title="Sortear um título entre os resultados atuais">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
-          Sortear
+          <span data-i18n="random">Sortear</span>
         </button>
         <button class="btn btn-primary" id="addContentButton" data-action="open-content-chooser" hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-          Adicionar
+          <span data-i18n="add">Adicionar</span>
         </button>
       </div>
     </div>
 
-    <div class="mobile-active-filters" id="mobileActiveFilters" aria-label="Filtros ativos"></div>
+    <div class="mobile-active-filters" id="mobileActiveFilters" aria-label="Filtros ativos" data-i18n-label="filters"></div>
 
     <!-- SERIES GRID -->
     <div class="series-grid" id="seriesGrid"></div>
@@ -181,7 +188,7 @@
 <div class="modal-overlay" id="contentTypeModal" data-modal-id="contentTypeModal" aria-hidden="true">
   <div class="modal content-type-modal" role="dialog" aria-modal="true" aria-labelledby="contentTypeModalTitle">
     <div class="modal-header">
-      <h2 class="modal-title" id="contentTypeModalTitle">O que deseja adicionar?</h2>
+      <h2 class="modal-title" id="contentTypeModalTitle" data-i18n="addWhat">O que deseja adicionar?</h2>
       <button class="modal-close" data-action="close-modal" data-modal-id="contentTypeModal" aria-label="Fechar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -191,29 +198,22 @@
         <span class="content-type-option-icon">
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m9 9 6 3-6 3V9Z"/></svg>
         </span>
-        <strong>Adicionar série</strong>
+        <strong data-i18n="addSeries">Adicionar série</strong>
         <span>Pesquise séries de TV no TMDB ou preencha os dados manualmente.</span>
       </button>
       <button class="content-type-option movie" data-add-content-type="movie">
         <span class="content-type-option-icon">
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/></svg>
         </span>
-        <strong>Adicionar filme</strong>
+        <strong data-i18n="addMovie">Adicionar filme</strong>
         <span>Pesquise filmes no TMDB e importe capa, sinopse e gêneros.</span>
       </button>
       <button class="content-type-option anime" data-add-content-type="anime">
         <span class="content-type-option-icon">
           <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.6 2.6M15.8 15.8l2.6 2.6M18.4 5.6l-2.6 2.6M8.2 15.8l-2.6 2.6"/><circle cx="12" cy="12" r="3"/></svg>
         </span>
-        <strong>Adicionar anime</strong>
+        <strong data-i18n="addAnime">Adicionar anime</strong>
         <span>Pesquise animes no TMDB ou preencha os dados manualmente.</span>
-      </button>
-      <button class="content-type-option reading" data-add-content-type="manga">
-        <span class="content-type-option-icon">
-          <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5v-16Z"/></svg>
-        </span>
-        <strong>Adicionar mangá / manhwa</strong>
-        <span>Pesquise no AniList e importe capa, sinopse, autor e capítulos.</span>
       </button>
     </div>
   </div>
@@ -234,9 +234,9 @@
         <span class="google-mark" aria-hidden="true">G</span>
         <span id="googleAuthLabel">Continuar com Google</span>
       </button>
-      <div class="auth-divider" aria-hidden="true"><span>ou entre com seu e-mail</span></div>
+      <div class="auth-divider" aria-hidden="true"><span id="authEmailDivider">ou entre com seu e-mail</span></div>
       <div class="form-group">
-        <label class="form-label" for="authEmail">E-mail</label>
+        <label class="form-label" id="authEmailLabel" for="authEmail">E-mail</label>
         <input class="form-input" id="authEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="voce@exemplo.com" autofocus />
       </div>
     </div>
@@ -267,9 +267,6 @@
           <option value="series">Série</option>
           <option value="movie">Filme</option>
           <option value="anime">Anime</option>
-          <option value="manga">Mangá</option>
-          <option value="manhwa">Manhwa</option>
-          <option value="manhua">Manhua</option>
         </select>
       </div>
 
@@ -286,10 +283,10 @@
         <div class="tmdb-results" id="tmdbResults" aria-live="polite"></div>
       </div>
 
-      <div class="tmdb-divider">ou preencha manualmente</div>
+      <div class="tmdb-divider" data-i18n="manual">ou preencha manualmente</div>
 
       <div class="form-group">
-        <label class="form-label" for="posterInput">Capa / pôster</label>
+        <label class="form-label" id="formPosterLabel" for="posterInput">Capa / pôster</label>
         <div class="poster-upload-area" id="posterUploadArea">
           <input type="file" id="posterInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
           <div class="poster-upload-hint" id="posterHint">
@@ -322,7 +319,7 @@
           <option value="China">China</option>
           <option value="Turquia">Turquia</option>
           <option value="Japão">Japão</option>
-          <option value="Tailândia">Tailândia</option>
+          <option value="EUA">EUA</option>
           <option value="Outros">Outros</option>
         </select>
       </div>
@@ -373,47 +370,14 @@
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="MUBI" aria-pressed="false">MUBI</button>
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Claro tv+" aria-pressed="false">Claro tv+</button>
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Looke" aria-pressed="false">Looke</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="NexusToons" aria-pressed="false">NexusToons</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="MangásTop" aria-pressed="false">MangásTop</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="LycanToons" aria-pressed="false">LycanToons</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="ToonsLivre" aria-pressed="false">ToonsLivre</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="MangaOnline" aria-pressed="false">MangaOnline</button>
-          <button type="button" class="platform-chip" data-media-kind="reading" data-value="FlowerMangas" aria-pressed="false">FlowerMangas</button>
-
           <button type="button" class="platform-chip" data-media-kind="both" data-value="Outros" aria-pressed="false">Outros</button>
         </div>
         <div id="platformFieldHint" style="margin-top:7px;font-size:11px;color:var(--text-dim)">Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.</div>
         <div id="tmdbPlatformStatus" style="display:none;margin-top:7px;font-size:11px;line-height:1.45"></div>
       </div>
 
-      <div class="reading-fields-section" id="readingFields" style="display:none">
-        <div class="reading-fields-title">Progresso de leitura</div>
-        <div class="form-group">
-          <label class="form-label" for="inputAuthor">Autor / Artista</label>
-          <input class="form-input" id="inputAuthor" type="text" maxlength="160" placeholder="Ex: Chugong, DUBU" />
-        </div>
-        <div class="reading-fields-grid">
-          <div class="form-group">
-            <label class="form-label" for="inputChapters">Total de capítulos</label>
-            <input class="form-input" id="inputChapters" type="number" min="0" step="1" placeholder="Ex: 179" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="inputCurrentChapter">Capítulo atual</label>
-            <input class="form-input" id="inputCurrentChapter" type="number" min="0" step="0.1" placeholder="Ex: 87" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="inputReadingStatus">Meu status</label>
-            <select class="form-select" id="inputReadingStatus">
-              <option value="quero_ler">Quero ler</option>
-              <option value="lendo">Lendo</option>
-              <option value="concluido">Concluído</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
       <div class="form-group">
-        <label class="form-label" for="inputSynopsis">Sinopse</label>
+        <label class="form-label" id="inputSynopsisLabel" for="inputSynopsis">Sinopse</label>
         <textarea class="form-textarea" id="inputSynopsis" maxlength="4000" placeholder="Escreva uma breve descrição..."></textarea>
       </div>
     </div>
@@ -463,7 +427,7 @@
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
 <!-- FAB (mobile) -->
-<button class="fab" id="fab" data-action="open-content-chooser" aria-label="Adicionar série, filme, anime, mangá ou manhwa" hidden>
+<button class="fab" id="fab" data-action="open-content-chooser" aria-label="Adicionar série, filme ou anime" hidden>
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
 

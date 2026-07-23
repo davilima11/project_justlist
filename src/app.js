@@ -4,11 +4,17 @@ import {
   createId,
   escapeHtml as escHtml,
   getContentType,
-  getContentTypeLabel,
-  isReadingContentType,
   normalizeImageUrl,
   normalizeSeriesName,
 } from './utils.js';
+import {
+  applyLanguage,
+  getLanguage,
+  setLanguage,
+  t,
+  translateContentType,
+  translateValue,
+} from './i18n.js';
 
 // ── STATE ──
 let series = [];
@@ -36,6 +42,7 @@ let pendingDeleteId = null;
 
 const STORAGE_KEY = 'justlist_series_v1';
 const SNAPSHOT_KEY = 'justlist_series_snapshot_v1';
+const FILTERS_COLLAPSED_KEY = 'justlist_filters_collapsed';
 const mobileSidebarMedia = window.matchMedia('(max-width: 768px)');
 
 // ── TMDB ──
@@ -45,8 +52,6 @@ const TMDB_IMG_THUMB = 'https://image.tmdb.org/t/p/w185';
 const TMDB_IMG_POSTER = 'https://image.tmdb.org/t/p/w500';
 const TMDB_LANG = 'pt-BR';
 const TMDB_CACHE_KEY = 'justlist_tmdb_cache_v1';
-const ANILIST_API = 'https://graphql.anilist.co';
-const READING_PLATFORMS = new Set(['NexusToons', 'MangásTop', 'LycanToons', 'ToonsLivre', 'MangaOnline', 'FlowerMangas', 'Outros']);
 
 // Mapa de gêneros TMDB (TV) -> gêneros do JustList
 const TMDB_GENRE_MAP = {
@@ -77,13 +82,6 @@ const TMDB_GENRE_MAP = {
   10768: ['Militar', 'Político'],        // War & Politics
 };
 
-const ANILIST_GENRE_MAP = {
-  Action: 'Ação', Adventure: 'Aventura', Comedy: 'Comédia', Drama: 'Drama',
-  Fantasy: 'Fantasia', Horror: 'Terror', Mystery: 'Mistério', Psychological: 'Psicológico',
-  Romance: 'Romance', 'Sci-Fi': 'Ficção científica', 'Slice of Life': 'Vida',
-  Sports: 'Esportes', Supernatural: 'Sobrenatural', Thriller: 'Suspense'
-};
-
 let tmdbCache = {};
 try { tmdbCache = JSON.parse(localStorage.getItem(TMDB_CACHE_KEY) || '{}'); } catch(e) { tmdbCache = {}; }
 function saveTmdbCache() {
@@ -98,23 +96,11 @@ function saveTmdbCache() {
 const COUNTRY_FLAG = {
   'Coreia': '🇰🇷',
   'China': '🇨🇳',
+  'EUA': '🇺🇸',
   'Turquia': '🇹🇷',
   'Japão': '🇯🇵',
-  'Tailândia': '🇹🇭',
   'Outros': '🌍'
 };
-
-function normalizeReadingStatus(status) {
-  return ['quero_ler', 'lendo', 'concluido'].includes(status) ? status : 'quero_ler';
-}
-
-function getReadingStatusLabel(status) {
-  return ({ quero_ler: 'Quero ler', lendo: 'Lendo', concluido: 'Concluído' })[normalizeReadingStatus(status)] || '';
-}
-
-function getPublicationStatusLabel(status) {
-  return ({ FINISHED: 'Concluído', RELEASING: 'Em publicação', NOT_YET_RELEASED: 'Ainda não lançado', CANCELLED: 'Cancelado', HIATUS: 'Em hiato' })[status] || status || '';
-}
 
 // Retorna o ano lendo do registro ou do cache TMDB.
 function getSeriesYear(s) {
@@ -127,8 +113,6 @@ function getSeriesYear(s) {
 }
 
 let pendingTmdb = null; // {tmdb_id, year, content_type} para anexar ao salvar
-let pendingAniList = null; // metadados importados para uma leitura
-let aniListResultsById = new Map();
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 let searchRenderTimer = null;
@@ -139,7 +123,7 @@ function mapTmdbCountry(originCountries) {
   if (originCountries.includes('CN') || originCountries.includes('TW') || originCountries.includes('HK')) return 'China';
   if (originCountries.includes('TR')) return 'Turquia';
   if (originCountries.includes('JP')) return 'Japão';
-  if (originCountries.includes('TH')) return 'Tailândia';
+  if (originCountries.includes('US')) return 'EUA';
   return 'Outros';
 }
 
@@ -207,6 +191,7 @@ function ensureGenreOption(genre) {
     chip.textContent = value;
     filterContainer.appendChild(chip);
   }
+  sortFilterOptions();
 }
 
 function ensurePlatformOption(platform) {
@@ -218,7 +203,7 @@ function ensurePlatformOption(platform) {
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'platform-chip';
-    chip.dataset.mediaKind = READING_PLATFORMS.has(value) ? 'reading' : 'both';
+    chip.dataset.mediaKind = 'both';
     chip.dataset.value = value;
     chip.setAttribute('aria-pressed', 'false');
     chip.textContent = value;
@@ -236,6 +221,19 @@ function ensurePlatformOption(platform) {
     chip.textContent = value;
     filterContainer.appendChild(chip);
   }
+  sortFilterOptions();
+}
+
+function sortFilterOptions() {
+  const locale = getLanguage();
+  ['filterContentType', 'filterType', 'filterGenre', 'filterPlatform', 'genreChips', 'platformChips'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    const items = Array.from(container.children);
+    items.sort((a, b) => translateValue(a.dataset.value || a.textContent, locale)
+      .localeCompare(translateValue(b.dataset.value || b.textContent, locale), locale, { sensitivity: 'base' }));
+    items.forEach(item => container.appendChild(item));
+  });
 }
 
 function syncPlatformOptionsFromSavedItems() {
@@ -302,10 +300,7 @@ function getSeriesPlatforms(item) {
 
   const normalizePlatforms = values => {
     const cleaned = values.map(String).map(value => value.trim()).filter(Boolean);
-    const normalized = isReadingContentType(item)
-      ? cleaned.map(value => READING_PLATFORMS.has(value) ? value : 'Outros')
-      : cleaned;
-    return [...new Set(normalized)];
+    return [...new Set(cleaned)];
   };
 
   if (Array.isArray(item.platforms)) {
@@ -345,7 +340,7 @@ function normalizeSeriesItem(item) {
   if (!name) return null;
 
   const contentType = getContentType(item);
-  const allowedOrigins = new Set(['Coreia', 'China', 'Turquia', 'Japão', 'Tailândia', 'Outros']);
+  const allowedOrigins = new Set(['China', 'Coreia', 'EUA', 'Japão', 'Outros', 'Turquia']);
   const genres = (Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []))
     .map(value => String(value).trim().slice(0, 60))
     .filter(Boolean)
@@ -354,11 +349,6 @@ function normalizeSeriesItem(item) {
     .map(value => String(value).trim().slice(0, 80))
     .filter(Boolean)
     .slice(0, 20);
-  const toNonNegativeNumber = value => {
-    if (value === '' || value === null || value === undefined) return null;
-    const number = Number(value);
-    return Number.isFinite(number) && number >= 0 ? number : null;
-  };
   const year = Number.parseInt(item.year, 10);
 
   const normalized = {
@@ -372,13 +362,6 @@ function normalizeSeriesItem(item) {
     synopsis: String(item.synopsis || '').trim().slice(0, 4000),
     poster: normalizeImageUrl(item.poster),
     year: Number.isFinite(year) && year >= 1870 && year <= 2200 ? year : null,
-    author: isReadingContentType(contentType) && item.author ? String(item.author).trim().slice(0, 160) : null,
-    chapters: isReadingContentType(contentType) ? toNonNegativeNumber(item.chapters) : null,
-    current_chapter: isReadingContentType(contentType) ? toNonNegativeNumber(item.current_chapter) : null,
-    reading_status: isReadingContentType(contentType) ? normalizeReadingStatus(item.reading_status) : null,
-    publication_status: isReadingContentType(contentType) && item.publication_status
-      ? String(item.publication_status).slice(0, 40)
-      : null,
   };
 
   delete normalized.contentType;
@@ -418,18 +401,16 @@ function saveRemoteSnapshot(items) {
 function getFormContentType() {
   const select = document.getElementById('inputContentType');
   const value = select && select.value;
-  return ['movie', 'anime', 'manga', 'manhwa', 'manhua'].includes(value) ? value : 'series';
+  return ['movie', 'anime'].includes(value) ? value : 'series';
 }
 
 function updateContentTypeFormUI(contentType, editing = false) {
   const normalized = getContentType({ content_type: contentType });
   const isMovie = normalized === 'movie';
   const isAnime = normalized === 'anime';
-  const isReading = isReadingContentType(normalized);
   const select = document.getElementById('inputContentType');
   const originGroup = document.getElementById('originFormGroup');
   const originSelect = document.getElementById('inputType');
-  const readingFields = document.getElementById('readingFields');
   if (select) select.value = normalized;
 
   if (originGroup) originGroup.style.display = isMovie ? 'none' : '';
@@ -437,43 +418,33 @@ function updateContentTypeFormUI(contentType, editing = false) {
     originSelect.required = !isMovie;
     originSelect.setAttribute('aria-required', String(!isMovie));
   }
-  if (readingFields) {
-    readingFields.style.display = isReading ? '' : 'none';
-    readingFields.querySelectorAll('input, select, textarea').forEach(field => {
-      field.disabled = !isReading;
-    });
-  }
   if (isMovie && originSelect) originSelect.value = 'Outros';
   if (isAnime && originSelect && !originSelect.value) originSelect.value = 'Japão';
-  if (isReading && originSelect && (!editing || !originSelect.value)) {
-    originSelect.value = normalized === 'manhwa' ? 'Coreia' : (normalized === 'manhua' ? 'China' : 'Japão');
-  }
 
-  const typeLabel = getContentTypeLabel(normalized).toLowerCase();
-  document.getElementById('formModalTitle').textContent = `${editing ? 'Editar' : 'Adicionar'} ${typeLabel}`;
-  document.getElementById('inputNameLabel').textContent = isMovie ? 'Nome do filme' : (isAnime ? 'Nome do anime' : (isReading ? `Nome do ${typeLabel}` : 'Nome da série'));
-  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasita' : (isAnime ? 'Ex: Attack on Titan' : (isReading ? 'Ex: Solo Leveling, Berserk, Omniscient Reader...' : 'Ex: Alchemy of Souls'));
-  document.getElementById('inputSynopsis').placeholder = `Escreva uma breve descrição do ${typeLabel}...`;
-  document.getElementById('tmdbSearchLabelText').textContent = isReading
-    ? 'Buscar no AniList · preencher automaticamente'
-    : (isMovie ? 'Buscar filme no TMDB · preencher automaticamente' : (isAnime ? 'Buscar anime no TMDB · preencher automaticamente' : 'Buscar série no TMDB · preencher automaticamente'));
-  document.getElementById('tmdbSearchInput').placeholder = isReading
-    ? 'Ex: Solo Leveling, Berserk, Tower of God...'
-    : (isMovie ? 'Ex: Parasita, Duna, Interestelar...' : (isAnime ? 'Ex: Naruto, One Piece, Jujutsu Kaisen...' : 'Ex: Goblin, Crash Landing on You...'));
+  const typeLabel = translateContentType(normalized).toLowerCase();
+  const english = getLanguage() === 'en';
+  document.getElementById('formModalTitle').textContent = `${editing ? (english ? 'Edit' : 'Editar') : (english ? 'Add' : 'Adicionar')} ${typeLabel}`;
+  document.getElementById('inputNameLabel').textContent = isMovie
+    ? (english ? 'Movie name' : 'Nome do filme')
+    : (isAnime ? (english ? 'Anime name' : 'Nome do anime') : (english ? 'Series name' : 'Nome da série'));
+  document.getElementById('inputName').placeholder = isMovie ? 'Ex: Parasite' : (isAnime ? 'Ex: Attack on Titan' : 'Ex: Alchemy of Souls');
+  document.getElementById('inputSynopsis').placeholder = english ? `Write a brief description of the ${typeLabel}...` : `Escreva uma breve descrição do ${typeLabel}...`;
+  document.getElementById('tmdbSearchLabelText').textContent = isMovie ? t('searchMovie') : (isAnime ? t('searchAnime') : t('searchSeries'));
+  document.getElementById('tmdbSearchInput').placeholder = isMovie ? 'Ex: Parasita, Duna, Interestelar...' : (isAnime ? 'Ex: Naruto, One Piece, Jujutsu Kaisen...' : 'Ex: Goblin, Crash Landing on You...');
 
   const platformLabel = document.getElementById('platformFieldLabel');
   const platformMark = document.getElementById('platformRequiredMark');
   const platformHint = document.getElementById('platformFieldHint');
-  if (platformLabel) platformLabel.textContent = isReading ? 'Onde você lê' : 'Plataformas';
-  if (platformMark) platformMark.style.display = isReading ? 'none' : '';
-  if (platformHint) platformHint.textContent = isReading
-    ? 'Campo opcional. Selecione o site ou aplicativo onde você lê.'
+  if (platformLabel) platformLabel.textContent = t('platforms');
+  if (platformMark) platformMark.style.display = '';
+  if (platformHint) platformHint.textContent = getLanguage() === 'en'
+    ? 'Select one or more platforms. When importing from TMDB, availability in Brazil is marked automatically.'
     : 'Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.';
   setTmdbPlatformStatus('');
 
   document.querySelectorAll('.platform-chip').forEach(chip => {
     const mediaKind = chip.dataset.mediaKind || 'screen';
-    const visible = mediaKind === 'both' || (isReading ? mediaKind === 'reading' : mediaKind === 'screen');
+    const visible = true;
     chip.style.display = visible ? '' : 'none';
     if (!visible) {
       chip.classList.remove('selected');
@@ -697,176 +668,8 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
 }
 
 
-function mapAniListContentType(countryCode) {
-  if (countryCode === 'KR') return 'manhwa';
-  if (['CN', 'TW', 'HK'].includes(countryCode)) return 'manhua';
-  return 'manga';
-}
-
-function mapAniListCountry(countryCode) {
-  if (countryCode === 'KR') return 'Coreia';
-  if (['CN', 'TW', 'HK'].includes(countryCode)) return 'China';
-  if (countryCode === 'JP') return 'Japão';
-  return 'Outros';
-}
-
-function mapAniListGenres(genres) {
-  return [...new Set((genres || []).map(genre => ANILIST_GENRE_MAP[genre] || genre).filter(Boolean))];
-}
-
-function cleanAniListDescription(value) {
-  return String(value || '')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    .replace(/~!|!~/g, '')
-    .replace(/__|\*\*/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function getAniListAuthors(item) {
-  const edges = item && item.staff && Array.isArray(item.staff.edges) ? item.staff.edges : [];
-  return [...new Set(edges
-    .filter(edge => /story|art/i.test(edge.role || ''))
-    .map(edge => edge.node && edge.node.name && edge.node.name.full)
-    .filter(Boolean))].slice(0, 4).join(', ');
-}
-
-async function anilistSearch(query) {
-  const resultsBox = document.getElementById('tmdbResults');
-  const spinner = document.getElementById('tmdbSearchSpinner');
-  if (!query || query.trim().length < 2) {
-    resultsBox.classList.remove('visible');
-    return;
-  }
-
-  catalogSearchController?.abort();
-  const controller = new AbortController();
-  catalogSearchController = controller;
-  tmdbLastQuery = `anilist:${query}`;
-  const requestKey = tmdbLastQuery;
-  spinner.classList.add('visible');
-  resultsBox.setAttribute('aria-busy', 'true');
-  resultsBox.innerHTML = Array(4).fill(`<div class="tmdb-skel-row"><div class="tmdb-skel-poster skeleton"></div><div class="tmdb-skel-info"><div class="skel-line skeleton w-80"></div><div class="skel-line skeleton w-50"></div></div></div>`).join('');
-  resultsBox.classList.add('visible');
-
-  const graphQuery = `
-    query ($search: String!) {
-      Page(page: 1, perPage: 12) {
-        media(search: $search, type: MANGA, sort: SEARCH_MATCH, isAdult: false) {
-          id
-          title { romaji english native userPreferred }
-          description(asHtml: false)
-          coverImage { large extraLarge }
-          genres
-          status
-          chapters
-          startDate { year }
-          countryOfOrigin
-          staff(perPage: 12) {
-            edges { role node { name { full } } }
-          }
-        }
-      }
-    }`;
-
-  try {
-    const response = await fetch(ANILIST_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ query: graphQuery, variables: { search: query.trim() } }),
-      signal: controller.signal,
-    });
-    if (!response.ok) throw new Error(`AniList request failed: ${response.status}`);
-    const payload = await response.json();
-    if (payload.errors && payload.errors.length) throw new Error(payload.errors[0].message || 'AniList GraphQL error');
-    if (requestKey !== tmdbLastQuery) return;
-    renderAniListResults((payload.data && payload.data.Page && payload.data.Page.media) || []);
-  } catch (error) {
-    if (error.name === 'AbortError' || requestKey !== tmdbLastQuery) return;
-    console.error(error);
-    resultsBox.innerHTML = `<div class="tmdb-empty">Erro ao buscar no AniList. Verifique sua conexão.</div>`;
-    resultsBox.classList.add('visible');
-  } finally {
-    if (requestKey === tmdbLastQuery) {
-      spinner.classList.remove('visible');
-      resultsBox.setAttribute('aria-busy', 'false');
-      if (catalogSearchController === controller) catalogSearchController = null;
-    }
-  }
-}
-
-function renderAniListResults(results) {
-  const box = document.getElementById('tmdbResults');
-  aniListResultsById.clear();
-  if (!results.length) {
-    box.innerHTML = `<div class="tmdb-empty">Nenhum mangá, manhwa ou manhua encontrado.</div>`;
-    box.classList.add('visible');
-    return;
-  }
-
-  box.innerHTML = results.slice(0, 10).map(item => {
-    aniListResultsById.set(String(item.id), item);
-    const name = item.title.english || item.title.userPreferred || item.title.romaji || item.title.native || 'Sem título';
-    const original = item.title.native && item.title.native !== name ? ` · ${escHtml(item.title.native)}` : '';
-    const type = mapAniListContentType(item.countryOfOrigin);
-    const year = item.startDate && item.startDate.year ? item.startDate.year : '—';
-    const poster = normalizeImageUrl(item.coverImage && (item.coverImage.large || item.coverImage.extraLarge));
-    const posterHtml = poster
-      ? `<img class="tmdb-result-poster" src="${escHtml(poster)}" alt="" loading="lazy" decoding="async" />`
-      : `<div class="tmdb-result-poster-placeholder">${posterFallbackIcon(16)}</div>`;
-    return `<button type="button" class="tmdb-result" data-anilist-id="${escHtml(item.id)}">
-      ${posterHtml}
-      <div class="tmdb-result-info">
-        <div class="tmdb-result-name">${escHtml(name)}</div>
-        <div class="tmdb-result-meta">${escHtml(year)} · ${escHtml(getContentTypeLabel(type))}${original}</div>
-      </div>
-    </button>`;
-  }).join('');
-  box.classList.add('visible');
-}
-
-function selectAniListResult(id) {
-  const item = aniListResultsById.get(String(id));
-  if (!item) return;
-
-  const contentType = mapAniListContentType(item.countryOfOrigin);
-  const name = item.title.english || item.title.userPreferred || item.title.romaji || item.title.native || '';
-  const mappedGenres = mapAniListGenres(item.genres || []);
-  mappedGenres.forEach(ensureGenreOption);
-
-  document.getElementById('inputContentType').value = contentType;
-  updateContentTypeFormUI(contentType, Boolean(editingId));
-  document.getElementById('inputName').value = name;
-  document.getElementById('inputType').value = mapAniListCountry(item.countryOfOrigin);
-  document.getElementById('inputSynopsis').value = cleanAniListDescription(item.description);
-  document.getElementById('inputAuthor').value = getAniListAuthors(item);
-  document.getElementById('inputChapters').value = Number.isInteger(item.chapters) ? item.chapters : '';
-
-  document.querySelectorAll('.genre-chip').forEach(chip => {
-    const selected = mappedGenres.includes(chip.dataset.value);
-    chip.classList.toggle('selected', selected);
-    chip.setAttribute('aria-pressed', String(selected));
-  });
-
-  const poster = normalizeImageUrl(item.coverImage && (item.coverImage.extraLarge || item.coverImage.large));
-  if (poster) {
-    currentPosterData = poster;
-    showPosterPreview(poster);
-  }
-
-  pendingAniList = {
-    year: item.startDate && item.startDate.year ? item.startDate.year : null,
-    publication_status: item.status || null
-  };
-
-  document.getElementById('tmdbSearchInput').value = '';
-  document.getElementById('tmdbResults').classList.remove('visible');
-  showToast(`Dados do ${getContentTypeLabel(contentType).toLowerCase()} importados do AniList.`, 'success');
-}
-
 function searchExternalCatalog(query) {
-  return isReadingContentType(getFormContentType()) ? anilistSearch(query) : tmdbSearch(query);
+  return tmdbSearch(query);
 }
 
 // ── SUPABASE ──
@@ -910,10 +713,10 @@ function syncAuthUi() {
   authButton.hidden = false;
   authButton.disabled = !isAuthReady;
   authButton.toggleAttribute('aria-busy', !isAuthReady);
-  authLabel.textContent = currentUser ? 'Sair' : 'Entrar';
+  authLabel.textContent = currentUser ? t('signOut') : t('signIn');
   authButton.title = currentUser
-    ? `Sair da conta ${currentUser.email || ''}`.trim()
-    : 'Entrar ou criar uma conta';
+    ? `${t('signOut')} ${currentUser.email || ''}`.trim()
+    : t('signInOrCreate');
   authButton.setAttribute('aria-label', authButton.title);
   if (googleAuthButton) {
     googleAuthButton.disabled = !isAuthReady || isSigningInWithGoogle;
@@ -1215,6 +1018,42 @@ function toggleSidebar() {
   if (isOpen) sidebar.focus();
 }
 
+function setFiltersCollapsed(collapsed, persist = true) {
+  const appLayout = document.querySelector('.app-layout');
+  if (!appLayout) return;
+  appLayout.classList.toggle('filters-collapsed', collapsed);
+  const expanded = !collapsed;
+  const buttons = [
+    document.getElementById('filterToggleBtn'),
+    document.getElementById('sidebarCollapseButton'),
+  ].filter(Boolean);
+  buttons.forEach(button => {
+    button.setAttribute('aria-expanded', String(expanded));
+    button.dataset.i18nLabel = expanded ? 'hideFilters' : 'showFilters';
+    button.dataset.i18nTitle = expanded ? 'hideFilters' : 'showFilters';
+  });
+  applyLanguage();
+  if (persist) {
+    try { localStorage.setItem(FILTERS_COLLAPSED_KEY, String(collapsed)); } catch (error) { console.warn(error); }
+  }
+}
+
+function toggleFilters() {
+  if (mobileSidebarMedia.matches) {
+    toggleSidebar();
+    return;
+  }
+  const collapsed = document.querySelector('.app-layout')?.classList.contains('filters-collapsed');
+  setFiltersCollapsed(!collapsed);
+}
+
+function loadSavedFiltersState() {
+  let collapsed = false;
+  try { collapsed = localStorage.getItem(FILTERS_COLLAPSED_KEY) === 'true'; } catch (error) { console.warn(error); }
+  if (!mobileSidebarMedia.matches) setFiltersCollapsed(collapsed, false);
+  else document.getElementById('filterToggleBtn')?.setAttribute('aria-expanded', 'false');
+}
+
 function closeSidebar() {
   const sidebar = document.getElementById('sidebar');
   const button = document.getElementById('filterToggleBtn');
@@ -1246,7 +1085,7 @@ function getContentCounts(items = series) {
     const type = getContentType(item);
     counts[type] = (counts[type] || 0) + 1;
     return counts;
-  }, { series: 0, movie: 0, anime: 0, manga: 0, manhwa: 0, manhua: 0 });
+  }, { series: 0, movie: 0, anime: 0 });
 }
 
 function render() {
@@ -1258,18 +1097,17 @@ function render() {
   if (randomBtn) {
     randomBtn.disabled = isLoading;
     randomBtn.title = isLoading
-      ? 'Aguarde o carregamento da lista'
+      ? (getLanguage() === 'en' ? 'Wait for the list to load' : 'Aguarde o carregamento da lista')
       : filtered.length > 0
-        ? `Sortear entre ${filtered.length} ${filtered.length === 1 ? 'título' : 'títulos'} dos resultados atuais`
-        : 'Nenhum título disponível nos resultados atuais';
+        ? t('sortHint', { count: filtered.length, label: filtered.length === 1 ? t('title') : t('titles') })
+        : t('noTitlesAvailable');
   }
 
   if (isLoading || series.length === 0) {
     document.getElementById('navCount').textContent = '';
   } else {
-    const plural = { series: 'séries', movie: 'filmes', anime: 'animes', manga: 'mangás', manhwa: 'manhwas', manhua: 'manhuas' };
-    const singular = { series: 'série', movie: 'filme', anime: 'anime', manga: 'mangá', manhwa: 'manhwa', manhua: 'manhua' };
-    const parts = Object.keys(counts).filter(type => counts[type]).map(type => `${counts[type]} ${counts[type] === 1 ? singular[type] : plural[type]}`);
+    const labels = { series: t('series'), movie: t('movie'), anime: t('anime') };
+    const parts = Object.keys(counts).filter(type => counts[type]).map(type => `${counts[type]} ${labels[type]}`);
     document.getElementById('navCount').textContent = parts.join(' · ');
   }
 
@@ -1278,10 +1116,10 @@ function render() {
   if (isLoading) {
     info.innerHTML = '<span style="opacity:.6">Carregando...</span>';
   } else if (hasFilters) {
-    info.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${series.length}</strong> títulos`;
+    info.innerHTML = `${t('resultsShowing')} <strong>${filtered.length}</strong> ${getLanguage() === 'en' ? 'of' : 'de'} <strong>${series.length}</strong> ${t('titles')}`;
   } else {
     info.innerHTML = series.length > 0
-      ? `<strong>${series.length}</strong> ${series.length === 1 ? 'título cadastrado' : 'títulos cadastrados'}`
+      ? `<strong>${series.length}</strong> ${t('titles')} ${series.length === 1 ? t('registered') : t('registeredPlural')}`
       : '';
   }
 
@@ -1294,11 +1132,11 @@ function render() {
   }
 
   if (series.length === 0) {
-    const emptyTitle = currentUser ? 'Sua lista está vazia' : 'Entre para ver sua lista';
+    const emptyTitle = currentUser ? t('emptyList') : t('signInToSeeList');
     const emptyDescription = currentUser
-      ? 'Comece adicionando uma série, filme, anime, mangá ou manhwa. O TMDB e o AniList podem preencher os dados automaticamente.'
-      : 'Entre ou crie uma conta para acessar sua lista particular e adicionar seus títulos.';
-    const emptyActionLabel = currentUser ? 'Adicionar primeiro título' : 'Entrar ou criar conta';
+      ? t('emptyListDescription')
+      : t('signInDescription');
+    const emptyActionLabel = currentUser ? t('firstTitle') : t('signInOrCreate');
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
@@ -1310,7 +1148,7 @@ function render() {
             ${emptyActionLabel}
           </button>
         </div>
-        ${currentUser ? '<div class="kbd-hint">Dica: pressione <span class="kbd">N</span> para adicionar rápido</div>' : ''}
+        ${currentUser ? `<div class="kbd-hint">${getLanguage() === 'en' ? 'Tip: press' : 'Dica: pressione'} <span class="kbd">N</span> ${getLanguage() === 'en' ? 'to add quickly' : 'para adicionar rápido'}</div>` : ''}
       </div>`;
     return;
   }
@@ -1319,9 +1157,9 @@ function render() {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
-        <h3>Nenhum resultado</h3>
-        <p>Nenhum título corresponde aos filtros ou à pesquisa atual.</p>
-        <div class="empty-actions"><button class="btn btn-ghost" data-action="clear-all">Limpar filtros e pesquisa</button></div>
+        <h3>${t('noResults')}</h3>
+        <p>${t('noResultsDescription')}</p>
+        <div class="empty-actions"><button class="btn btn-ghost" data-action="clear-all">${getLanguage() === 'en' ? 'Clear filters and search' : 'Limpar filtros e pesquisa'}</button></div>
       </div>`;
     return;
   }
@@ -1410,7 +1248,7 @@ function renderCard(s, idx) {
     : createCardPosterPlaceholder(s.name);
 
   const contentType = getContentType(s);
-  const contentTypeLabel = getContentTypeLabel(s);
+  const contentTypeLabel = translateContentType(getContentType(s));
   const contentTypeBadge = `<span class="badge badge-content-type" data-content-type="${escHtml(contentType)}">${escHtml(contentTypeLabel)}</span>`;
   const hasOrigin = contentType !== 'movie';
   const flag = hasOrigin ? (COUNTRY_FLAG[s.type] || '') : '';
@@ -1419,26 +1257,19 @@ function renderCard(s, idx) {
   const platforms = getSeriesPlatforms(s);
 
   const originBadge = hasOrigin && s.type
-    ? `<span class="badge badge-type" title="Origem: ${escHtml(s.type)}">${flag ? `${flag} ` : ''}${escHtml(s.type)}</span>`
-    : '';
-
-  const readingProgressBadge = isReadingContentType(contentType) && (s.current_chapter !== null && s.current_chapter !== undefined && s.current_chapter !== '')
-    ? `<span class="badge badge-type" title="Progresso de leitura">Cap. ${escHtml(s.current_chapter)}${s.chapters ? `/${escHtml(s.chapters)}` : ''}</span>`
-    : '';
-  const readingStatusBadge = isReadingContentType(contentType) && s.reading_status
-    ? `<span class="badge badge-type">${escHtml(getReadingStatusLabel(s.reading_status))}</span>`
+    ? `<span class="badge badge-type" title="Origem: ${escHtml(translateValue(s.type))}">${flag ? `${flag} ` : ''}${escHtml(translateValue(s.type))}</span>`
     : '';
 
   const platformBadges = platforms.map(platform =>
-    `<span class="badge badge-platform" data-platform="${escHtml(platform)}" title="${escHtml(platform)}">${escHtml(platform)}</span>`
+    `<span class="badge badge-platform" data-platform="${escHtml(platform)}" title="${escHtml(translateValue(platform))}">${escHtml(translateValue(platform))}</span>`
   ).join('');
 
   const genreBadges = genres.map(genre =>
-    `<span class="badge badge-genre" title="${escHtml(genre)}">${escHtml(genre)}</span>`
+    `<span class="badge badge-genre" title="${escHtml(translateValue(genre))}">${escHtml(translateValue(genre))}</span>`
   ).join('');
 
-  const primaryMeta = originBadge || platformBadges || readingProgressBadge || readingStatusBadge
-    ? `<div class="card-meta-row card-meta-row-primary badge-overflow-row">${originBadge}${readingProgressBadge}${readingStatusBadge}${platformBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
+  const primaryMeta = originBadge || platformBadges
+    ? `<div class="card-meta-row card-meta-row-primary badge-overflow-row">${originBadge}${platformBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
     : '';
   const genreMeta = genreBadges
     ? `<div class="card-meta-row card-meta-row-genres badge-overflow-row">${genreBadges}<span class="badge badge-more badge-overflow-counter" style="display:none"></span></div>`
@@ -1555,13 +1386,13 @@ function renderMobileActiveFilters() {
   const container = document.getElementById('mobileActiveFilters');
   if (!container) return;
 
-  const labels = { contentType: 'Conteúdo', type: 'Origem', genre: 'Gênero', platform: 'Plataforma' };
+  const labels = { contentType: t('content'), type: t('origin'), genre: t('genre'), platform: t('platform') };
   const active = [];
   ['contentType', 'type', 'genre', 'platform'].forEach(filterKey => {
     filters[filterKey].forEach(value => active.push({
       filterKey,
       value,
-      displayValue: filterKey === 'contentType' ? getContentTypeLabel(value) : value
+      displayValue: filterKey === 'contentType' ? translateContentType(value) : translateValue(value)
     }));
   });
 
@@ -1572,11 +1403,11 @@ function renderMobileActiveFilters() {
   }
 
   container.innerHTML = active.map(({ filterKey, value, displayValue }) => `
-    <button class="mobile-filter-chip" data-action="remove-mobile-filter" data-filter="${filterKey}" data-value="${escHtml(value)}" aria-label="Remover filtro ${escHtml(labels[filterKey])}: ${escHtml(displayValue)}">
+    <button class="mobile-filter-chip" data-action="remove-mobile-filter" data-filter="${filterKey}" data-value="${escHtml(value)}" aria-label="${escHtml(t('selectedFilter', { filter: labels[filterKey], value: displayValue }))}">
       <span>${escHtml(labels[filterKey])}: ${escHtml(displayValue)}</span>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>`).join('') + `
-    <button class="mobile-filters-clear" data-action="clear-filters">Limpar todos</button>`;
+    <button class="mobile-filters-clear" data-action="clear-filters">${t('clearAll')}</button>`;
 }
 
 function removeMobileFilter(button) {
@@ -1678,6 +1509,9 @@ function handleSidebarBreakpointChange() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebarOverlay').classList.remove('open');
     document.getElementById('sidebarOverlay').setAttribute('aria-hidden', 'true');
+    const collapsed = document.querySelector('.app-layout')?.classList.contains('filters-collapsed');
+    document.getElementById('filterToggleBtn').setAttribute('aria-expanded', String(!collapsed));
+  } else {
     document.getElementById('filterToggleBtn').setAttribute('aria-expanded', 'false');
   }
   syncPageInteractionState();
@@ -1754,7 +1588,6 @@ function openAddModal(contentType = 'series') {
   editingId = null;
   currentPosterData = null;
   pendingTmdb = null;
-  pendingAniList = null;
   document.getElementById('editId').value = '';
   document.getElementById('inputContentType').value = getContentType({ content_type: contentType });
   document.getElementById('inputName').value = '';
@@ -1764,10 +1597,6 @@ function openAddModal(contentType = 'series') {
     chip.setAttribute('aria-pressed', 'false');
   });
   document.getElementById('inputSynopsis').value = '';
-  document.getElementById('inputAuthor').value = '';
-  document.getElementById('inputChapters').value = '';
-  document.getElementById('inputCurrentChapter').value = '';
-  document.getElementById('inputReadingStatus').value = 'quero_ler';
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
@@ -1790,7 +1619,6 @@ function openEditModal(id) {
   editingId = id;
   currentPosterData = item.poster || null;
   pendingTmdb = null;
-  pendingAniList = null;
 
   const contentType = getContentType(item);
   document.getElementById('editId').value = id;
@@ -1806,10 +1634,6 @@ function openEditModal(id) {
   });
 
   document.getElementById('inputSynopsis').value = item.synopsis || '';
-  document.getElementById('inputAuthor').value = item.author || '';
-  document.getElementById('inputChapters').value = item.chapters ?? '';
-  document.getElementById('inputCurrentChapter').value = item.current_chapter ?? '';
-  document.getElementById('inputReadingStatus').value = normalizeReadingStatus(item.reading_status);
   document.getElementById('inputPosterUrl').value = '';
   document.getElementById('tmdbSearchInput').value = '';
   document.getElementById('tmdbResults').classList.remove('visible');
@@ -1844,20 +1668,12 @@ async function saveSeries() {
   const contentType = getFormContentType();
   const selectedType = document.getElementById('inputType').value;
   const type = contentType === 'movie' ? 'Outros' : selectedType;
-  const isReading = isReadingContentType(contentType);
   const synopsis = document.getElementById('inputSynopsis').value.trim();
   const genres = Array.from(document.querySelectorAll('.genre-chip.selected')).map(chip => chip.dataset.value);
   const platforms = Array.from(document.querySelectorAll('.platform-chip.selected')).map(chip => chip.dataset.value);
-  const contentLabel = getContentTypeLabel(contentType).toLowerCase();
-  const author = document.getElementById('inputAuthor').value.trim();
-  const chaptersValue = document.getElementById('inputChapters').value;
-  const currentChapterValue = document.getElementById('inputCurrentChapter').value;
-  const readingStatus = document.getElementById('inputReadingStatus').value;
-  const chapters = chaptersValue === '' ? null : Number.parseInt(chaptersValue, 10);
-  const currentChapter = currentChapterValue === '' ? null : Number.parseFloat(currentChapterValue);
+  const contentLabel = translateContentType(contentType).toLowerCase();
   const targetId = editingId;
   const pendingTmdbAtSave = pendingTmdb;
-  const pendingAniListAtSave = pendingAniList;
 
   if (!name) {
     showToast(`Informe o nome do ${contentLabel}.`, 'error');
@@ -1872,7 +1688,7 @@ async function saveSeries() {
   );
   if (duplicate) {
     const inputName = document.getElementById('inputName');
-    const duplicateListLabel = `${getContentTypeLabel(contentType).toLowerCase()}s`;
+    const duplicateListLabel = `${translateContentType(contentType).toLowerCase()}s`;
     showToast(`“${duplicate.name}” já está na sua lista de ${duplicateListLabel}.`, 'error');
     inputName.focus();
     inputName.select();
@@ -1881,27 +1697,12 @@ async function saveSeries() {
 
   if (contentType !== 'movie' && !type) { showToast('Selecione a origem.', 'error'); return; }
   if (genres.length === 0) { showToast('Selecione pelo menos um gênero.', 'error'); return; }
-  if (!isReading && platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
-  if (isReading && (chaptersValue !== '' && (!Number.isInteger(chapters) || chapters < 0))) {
-    showToast('Informe um total de capítulos válido.', 'error');
-    document.getElementById('inputChapters').focus();
-    return;
-  }
-  if (isReading && (currentChapterValue !== '' && (!Number.isFinite(currentChapter) || currentChapter < 0))) {
-    showToast('Informe um capítulo atual válido.', 'error');
-    document.getElementById('inputCurrentChapter').focus();
-    return;
-  }
-  if (isReading && chapters !== null && currentChapter !== null && currentChapter > chapters) {
-    showToast('O capítulo atual não pode ser maior que o total.', 'error');
-    document.getElementById('inputCurrentChapter').focus();
-    return;
-  }
+  if (platforms.length === 0) { showToast('Selecione pelo menos uma plataforma.', 'error'); return; }
 
   const existingItem = targetId
     ? series.find(item => String(item.id) === String(targetId))
     : null;
-  const importedYear = Number.parseInt((pendingAniListAtSave && pendingAniListAtSave.year) || (pendingTmdbAtSave && pendingTmdbAtSave.year), 10);
+  const importedYear = Number.parseInt(pendingTmdbAtSave && pendingTmdbAtSave.year, 10);
   const savedYear = Number.parseInt(existingItem ? getSeriesYear(existingItem) : '', 10);
   const year = Number.isFinite(importedYear) && importedYear > 0
     ? importedYear
@@ -1917,22 +1718,6 @@ async function saveSeries() {
     poster: normalizeImageUrl(currentPosterData) || null,
     year
   };
-
-  if (isReading) {
-    payload.author = author || null;
-    payload.chapters = chapters;
-    payload.current_chapter = currentChapter;
-    payload.reading_status = normalizeReadingStatus(readingStatus);
-    payload.publication_status = pendingAniListAtSave && pendingAniListAtSave.publication_status
-      ? pendingAniListAtSave.publication_status
-      : (existingItem && existingItem.publication_status) || null;
-  } else {
-    payload.author = null;
-    payload.chapters = null;
-    payload.current_chapter = null;
-    payload.reading_status = null;
-    payload.publication_status = null;
-  }
 
   const saveButton = document.getElementById('saveSeriesBtn');
   const saveLabel = document.getElementById('saveSeriesLabel');
@@ -1952,7 +1737,7 @@ async function saveSeries() {
         tmdbCache[targetId] = pendingTmdbAtSave;
         saveTmdbCache();
       }
-      showToast(`${getContentTypeLabel(contentType)} atualizado!`, 'success');
+      showToast(`${translateContentType(contentType)} atualizado!`, 'success');
     } else {
       const created = normalizeSeriesItem(await insertSeries({ id: createId(), ...payload }));
       if (!created) throw new Error('O registro retornado é inválido.');
@@ -1961,11 +1746,10 @@ async function saveSeries() {
         tmdbCache[created.id] = pendingTmdbAtSave;
         saveTmdbCache();
       }
-      showToast(`${getContentTypeLabel(contentType)} adicionado!`, 'success');
+      showToast(`${translateContentType(contentType)} adicionado!`, 'success');
     }
 
     pendingTmdb = null;
-    pendingAniList = null;
     isSaving = false;
     closeModal('formModal');
     if (supabaseClient) saveRemoteSnapshot(series);
@@ -1975,15 +1759,12 @@ async function saveSeries() {
     const errorText = String(error && (error.message || error.details || ''));
     const missingContentType = errorText.includes('content_type');
     const missingYear = errorText.includes('year');
-    const missingReadingColumns = ['author', 'chapters', 'current_chapter', 'reading_status', 'publication_status'].some(column => errorText.includes(column));
     showToast(
       missingContentType
         ? 'Crie a coluna content_type no Supabase antes de salvar.'
         : missingYear
           ? 'Crie a coluna year no Supabase antes de salvar o ano.'
-          : missingReadingColumns
-            ? 'Crie as colunas de leitura no Supabase usando o SQL enviado nas instruções.'
-            : 'Erro ao salvar no Supabase.',
+          : 'Erro ao salvar no Supabase.',
       'error'
     );
   } finally {
@@ -2113,7 +1894,7 @@ function drawRandomSeries() {
     lastRandomSeriesId = selected.id;
     closeSidebar();
     openDetail(selected.id, true);
-    showToast(`${getContentTypeLabel(selected)} sorteado: ${selected.name}`, 'success');
+    showToast(`${translateContentType(getContentType(selected))} sorteado: ${selected.name}`, 'success');
     return;
   }
 
@@ -2149,7 +1930,7 @@ function drawRandomSeries() {
       lastRandomSeriesId = selected.id;
       randomDrawTimers.push(setTimeout(() => {
         openDetail(selected.id, true);
-        showToast(`${getContentTypeLabel(selected)} sorteado: ${selected.name}`, 'success');
+        showToast(`${translateContentType(getContentType(selected))} sorteado: ${selected.name}`, 'success');
       }, 260));
       return;
     }
@@ -2171,10 +1952,10 @@ function openDetail(id, fromRandomDraw = false) {
   const detailYear = getSeriesYear(s);
 
   clearRandomDrawTimers();
-  document.getElementById('detailTitle').textContent = fromRandomDraw ? `${getContentTypeLabel(s)} sorteado!` : s.name;
+  document.getElementById('detailTitle').textContent = fromRandomDraw ? `${translateContentType(getContentType(s))} sorteado!` : s.name;
 
   const detailContentType = getContentType(s);
-  const detailContentTypeLabel = getContentTypeLabel(s);
+  const detailContentTypeLabel = translateContentType(getContentType(s));
   const detailTypeOverlay = `<span class="detail-content-type-overlay" data-content-type="${escHtml(detailContentType)}">${escHtml(detailContentTypeLabel)}</span>`;
   const posterUrl = normalizeImageUrl(s.poster);
   const posterHtml = posterUrl
@@ -2190,35 +1971,30 @@ function openDetail(id, fromRandomDraw = false) {
        </div>`;
 
   const genreBadges = genres.length
-    ? genres.map(g => `<span class="detail-badge detail-badge-genre">${escHtml(g)}</span>`).join('')
-    : `<span class="detail-empty-value">Nenhum gênero informado.</span>`;
+    ? genres.map(g => `<span class="detail-badge detail-badge-genre">${escHtml(translateValue(g))}</span>`).join('')
+    : `<span class="detail-empty-value">${t('noGenre')}</span>`;
 
   const platformBadges = platforms.length
-    ? platforms.map(platform => `<span class="detail-badge detail-badge-platform">${escHtml(platform)}</span>`).join('')
-    : `<span class="detail-empty-value">${isReadingContentType(detailContentType) ? 'Nenhum local de leitura informado.' : 'Nenhuma plataforma informada.'}</span>`;
+    ? platforms.map(platform => `<span class="detail-badge detail-badge-platform">${escHtml(translateValue(platform))}</span>`).join('')
+    : `<span class="detail-empty-value">${t('noPlatform')}</span>`;
 
   const synopsisHtml = s.synopsis
     ? `<p class="detail-synopsis">${escHtml(s.synopsis).replace(/\n/g, '<br>')}</p>`
-    : `<p class="detail-no-synopsis">Sem sinopse cadastrada.</p>`;
+    : `<p class="detail-no-synopsis">${t('noSynopsis')}</p>`;
 
   const infoItems = [
     {
-      label: 'Tipo',
+      label: t('type'),
       value: detailContentTypeLabel
     },
     detailYear ? {
-      label: 'Ano',
+      label: t('year'),
       value: detailYear
     } : null,
     detailContentType !== 'movie' && s.type ? {
-      label: 'Origem',
-      value: s.type
+      label: t('origin'),
+      value: translateValue(s.type)
     } : null,
-    isReadingContentType(detailContentType) && s.author ? { label: 'Autor / Artista', value: s.author } : null,
-    isReadingContentType(detailContentType) && s.current_chapter !== null && s.current_chapter !== undefined ? { label: 'Capítulo atual', value: String(s.current_chapter) } : null,
-    isReadingContentType(detailContentType) && s.chapters ? { label: 'Capítulos', value: String(s.chapters) } : null,
-    isReadingContentType(detailContentType) && s.reading_status ? { label: 'Meu status', value: getReadingStatusLabel(s.reading_status) } : null,
-    isReadingContentType(detailContentType) && s.publication_status ? { label: 'Publicação', value: getPublicationStatusLabel(s.publication_status) } : null
   ].filter(Boolean);
 
   const infoGridHtml = infoItems.map(item => `
@@ -2233,7 +2009,7 @@ function openDetail(id, fromRandomDraw = false) {
     <div class="detail-body">
       ${fromRandomDraw ? `<div class="random-result-badge">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.1L21 9l-5 4.3 1.5 6.5L12 16.4 6.5 19.8 8 13.3 3 9l6.6-.9L12 2z"/></svg>
-        Resultado do sorteio
+        ${t('resultOfDraw')}
       </div>` : ''}
 
       <h3 class="detail-title">${escHtml(s.name)}</h3>
@@ -2245,7 +2021,7 @@ function openDetail(id, fromRandomDraw = false) {
       <section class="detail-section">
         <div class="detail-section-heading">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4M7 11h10"/></svg>
-          ${isReadingContentType(detailContentType) ? 'Onde você lê' : 'Plataformas'}
+          ${t('platforms')}
         </div>
         <div class="detail-chip-list">${platformBadges}</div>
       </section>
@@ -2253,7 +2029,7 @@ function openDetail(id, fromRandomDraw = false) {
       <section class="detail-section">
         <div class="detail-section-heading">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="6.5" r=".5" fill="currentColor"/></svg>
-          Gêneros
+          ${t('genres')}
         </div>
         <div class="detail-chip-list">${genreBadges}</div>
       </section>
@@ -2261,7 +2037,7 @@ function openDetail(id, fromRandomDraw = false) {
       <section class="detail-section">
         <div class="detail-section-heading">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
-          Sinopse
+          ${t('synopsis')}
         </div>
         ${synopsisHtml}
       </section>
@@ -2296,7 +2072,7 @@ function confirmDelete(id) {
   const s = series.find(x => String(x.id) === String(id));
   if (!s) return;
   pendingDeleteId = id;
-  document.getElementById('confirmTitle').textContent = `Excluir ${getContentTypeLabel(s).toLowerCase()}?`;
+  document.getElementById('confirmTitle').textContent = `Excluir ${translateContentType(getContentType(s)).toLowerCase()}?`;
   document.getElementById('confirmText').textContent = `Tem certeza que deseja excluir "${s.name}"? Esta ação não pode ser desfeita.`;
   openModal('confirmModal');
 }
@@ -2322,7 +2098,7 @@ async function deleteSeries(id) {
     closeModal('confirmModal');
     const deletedType = getContentType(item);
     showToast(
-      deletedType === 'series' ? 'Série excluída.' : `${getContentTypeLabel(deletedType)} excluído.`,
+      deletedType === 'series' ? 'Série excluída.' : `${translateContentType(deletedType)} excluído.`,
       'info'
     );
     if (supabaseClient) saveRemoteSnapshot(series);
@@ -2408,7 +2184,7 @@ document.addEventListener('click', event => {
     else if (action === 'close-sidebar') closeSidebar();
     else if (action === 'clear-filters') clearFilters();
     else if (action === 'clear-all') clearAll();
-    else if (action === 'toggle-sidebar') toggleSidebar();
+    else if (action === 'toggle-sidebar' || action === 'toggle-filters') toggleFilters();
     else if (action === 'draw-random') drawRandomSeries();
     else if (action === 'toggle-auth') toggleAuth();
     else if (action === 'sign-in-google') signInWithGoogle();
@@ -2461,12 +2237,6 @@ document.addEventListener('click', event => {
   const tmdbResult = event.target.closest('[data-tmdb-id]');
   if (tmdbResult) {
     selectTmdbResult(Number.parseInt(tmdbResult.dataset.tmdbId, 10), tmdbResult.dataset.contentType);
-    return;
-  }
-
-  const aniListResult = event.target.closest('[data-anilist-id]');
-  if (aniListResult) {
-    selectAniListResult(aniListResult.dataset.anilistId);
     return;
   }
 
@@ -2558,7 +2328,6 @@ document.getElementById('inputContentType').addEventListener('change', event => 
   }
   invalidateCatalogRequests();
   pendingTmdb = null;
-  pendingAniList = null;
   document.getElementById('tmdbSearchInput').value = '';
   const results = document.getElementById('tmdbResults');
   results.classList.remove('visible');
@@ -2588,6 +2357,15 @@ document.getElementById('searchInput').addEventListener('input', e => {
   document.getElementById('searchClear').classList.toggle('visible', searchQuery.length > 0);
   clearTimeout(searchRenderTimer);
   searchRenderTimer = setTimeout(render, 120);
+});
+
+document.getElementById('languageSelect').addEventListener('change', event => {
+  setLanguage(event.target.value);
+  sortFilterOptions();
+  applyLanguage();
+  updateContentTypeFormUI(getFormContentType(), Boolean(editingId));
+  updateFiltersClearBtn();
+  render();
 });
 
 // ── THEME TOGGLE ──
@@ -2666,6 +2444,9 @@ function loadPosterFromUrl() {
 }
 
 // ── INIT ──
+sortFilterOptions();
+applyLanguage();
+loadSavedFiltersState();
 loadSavedTheme();
 
 // Recalcula overflow quando o grid muda de largura (resize de janela ou sidebar)
