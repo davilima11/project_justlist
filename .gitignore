@@ -2,9 +2,3 @@ node_modules/
 dist/
 *.log
 .DS_Store
-
-# Arquivos de ambiente com secrets (TMDB_API_KEY etc.)
-.env
-.env.local
-.env.*.local
-.supabase/

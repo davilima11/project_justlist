@@ -67,32 +67,12 @@ const FILTERS_COLLAPSED_KEY = 'justlist_filters_collapsed';
 const mobileSidebarMedia = window.matchMedia('(max-width: 768px)');
 
 // ── TMDB ──
-// A chave da API nunca fica no bundle. As requisições são repassadas por uma
-// Edge Function do Supabase (ver supabase/functions/tmdb-proxy/README.md).
-// A URL pode ser configurada via variável de ambiente do Vite (VITE_TMDB_PROXY_URL)
-// ou sobrescrita abaixo em ambientes sem build.
-const TMDB_PROXY_URL =
-  (import.meta.env && import.meta.env.VITE_TMDB_PROXY_URL) ||
-  'https://vwrjxsietwsybvpxmdvg.supabase.co/functions/v1/tmdb-proxy';
+const TMDB_API_KEY = '4718b9fc7b347afb98df27f0c9e18ee9';
+const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMG_THUMB = 'https://image.tmdb.org/t/p/w185';
 const TMDB_IMG_POSTER = 'https://image.tmdb.org/t/p/w500';
 const TMDB_LANG = 'pt-BR';
 const TMDB_CACHE_KEY = 'justlist_tmdb_cache_v1';
-
-// Helper único para chamar o proxy TMDB. `path` é validado pela própria função no servidor.
-async function tmdbProxy(path, query = {}, signal) {
-  const res = await fetch(TMDB_PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ path, query }),
-    signal,
-  });
-  if (!res.ok) {
-    const msg = await res.text().catch(() => '');
-    throw new Error(`TMDB proxy failed (${res.status}): ${msg}`);
-  }
-  return res.json();
-}
 
 // Mapa de gêneros TMDB (TV) -> gêneros do JustList
 const TMDB_GENRE_MAP = {
@@ -311,8 +291,13 @@ function setTmdbPlatformStatus(message = '', state = 'info') {
 
 async function fetchTmdbWatchPlatforms(tmdbId, contentType, signal) {
   const endpoint = contentType === 'movie' ? 'movie' : 'tv';
-  const data = await tmdbProxy(`${endpoint}/${tmdbId}/watch/providers`, {}, signal);
+  const response = await fetch(
+    `${TMDB_BASE}/${endpoint}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`,
+    { signal },
+  );
+  if (!response.ok) throw new Error('TMDB watch providers failed');
 
+  const data = await response.json();
   const brazil = data.results && data.results.BR;
   if (!brazil) return [];
 
@@ -529,7 +514,10 @@ async function tmdbSearch(query) {
   resultsBox.classList.add('visible');
 
   try {
-    const data = await tmdbProxy(`search/${endpoint}`, { query }, controller.signal);
+    const url = `${TMDB_BASE}/search/${endpoint}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}&query=${encodeURIComponent(query)}&page=1&include_adult=false`;
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error('TMDB request failed: ' + res.status);
+    const data = await res.json();
     if (requestKey !== tmdbLastQuery) return;
     renderTmdbResults(data.results || [], false, contentType);
   } catch (e) {
@@ -622,10 +610,14 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
   spinner.classList.add('visible');
 
   try {
+    const urlPt = `${TMDB_BASE}/${endpoint}/${tmdbId}?api_key=${TMDB_API_KEY}&language=${TMDB_LANG}`;
     setTmdbPlatformStatus('Buscando plataformas disponíveis no Brasil…');
 
     const [detailsResult, providersResult] = await Promise.allSettled([
-      tmdbProxy(`${endpoint}/${tmdbId}`, {}, controller.signal),
+      fetch(urlPt, { signal: controller.signal }).then(response => {
+        if (!response.ok) throw new Error('TMDB details failed');
+        return response.json();
+      }),
       fetchTmdbWatchPlatforms(tmdbId, normalizedType, controller.signal)
     ]);
 
