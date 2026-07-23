@@ -18,7 +18,12 @@ import {
 
 // ── STATE ──
 let series = [];
-let filters = { contentType: [], type: [], genre: [], platform: [] };
+const YEAR_MIN_DEFAULT = 1900;
+const YEAR_MAX_DEFAULT = new Date().getFullYear();
+const DATA_PAGE_SIZE = 48;
+const REMOVED_PLATFORM_NAMES = new Set(['nexustoons', 'mubi', 'pluto tv', 'claro tv+']);
+
+let filters = { contentType: [], type: [], genre: [], platform: [], year: { min: null, max: null } };
 let searchQuery = '';
 let currentView = 'grid';
 let editingId = null;
@@ -37,6 +42,11 @@ let formSessionId = 0;
 let currentUser = null;
 let isAuthReady = false;
 let isRemoteDataWritable = false;
+let hasMoreRemoteData = false;
+let totalRemoteData = null;
+let remoteDataOffset = 0;
+let isLoadingMore = false;
+let availableYearRange = { min: YEAR_MIN_DEFAULT, max: YEAR_MAX_DEFAULT };
 let authDataRequestId = 0;
 let pendingDeleteId = null;
 
@@ -97,6 +107,7 @@ const COUNTRY_FLAG = {
   'Coreia': '🇰🇷',
   'China': '🇨🇳',
   'EUA': '🇺🇸',
+  'Espanha': '🇪🇸',
   'Turquia': '🇹🇷',
   'Japão': '🇯🇵',
   'Outros': '🌍'
@@ -124,6 +135,7 @@ function mapTmdbCountry(originCountries) {
   if (originCountries.includes('TR')) return 'Turquia';
   if (originCountries.includes('JP')) return 'Japão';
   if (originCountries.includes('US')) return 'EUA';
+  if (originCountries.includes('ES')) return 'Espanha';
   return 'Outros';
 }
 
@@ -145,6 +157,7 @@ function mapTmdbProviderName(providerName) {
   const original = String(providerName || '').trim();
   const name = original.toLocaleLowerCase('pt-BR');
   if (!name) return '';
+  if (REMOVED_PLATFORM_NAMES.has(name)) return '';
 
   if (name.includes('netflix')) return 'Netflix';
   if (name.includes('amazon prime video') || name === 'prime video') return 'Prime Video';
@@ -197,6 +210,7 @@ function ensureGenreOption(genre) {
 function ensurePlatformOption(platform) {
   const value = String(platform || '').trim();
   if (!value) return;
+  if (REMOVED_PLATFORM_NAMES.has(value.toLocaleLowerCase('pt-BR'))) return;
 
   const formContainer = document.getElementById('platformChips');
   if (formContainer && !Array.from(formContainer.querySelectorAll('.platform-chip')).some(chip => chip.dataset.value === value)) {
@@ -230,8 +244,15 @@ function sortFilterOptions() {
     const container = document.getElementById(id);
     if (!container) return;
     const items = Array.from(container.children);
-    items.sort((a, b) => translateValue(a.dataset.value || a.textContent, locale)
-      .localeCompare(translateValue(b.dataset.value || b.textContent, locale), locale, { sensitivity: 'base' }));
+    items.sort((a, b) => {
+      const aValue = a.dataset.value || a.textContent;
+      const bValue = b.dataset.value || b.textContent;
+      const aOther = String(aValue).toLocaleLowerCase('pt-BR') === 'outros';
+      const bOther = String(bValue).toLocaleLowerCase('pt-BR') === 'outros';
+      if (aOther !== bOther) return aOther ? 1 : -1;
+      return translateValue(aValue, locale)
+        .localeCompare(translateValue(bValue, locale), locale, { sensitivity: 'base' });
+    });
     items.forEach(item => container.appendChild(item));
   });
 }
@@ -340,7 +361,7 @@ function normalizeSeriesItem(item) {
   if (!name) return null;
 
   const contentType = getContentType(item);
-  const allowedOrigins = new Set(['China', 'Coreia', 'EUA', 'Japão', 'Outros', 'Turquia']);
+  const allowedOrigins = new Set(['China', 'Coreia', 'Espanha', 'EUA', 'Japão', 'Outros', 'Turquia']);
   const genres = (Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []))
     .map(value => String(value).trim().slice(0, 60))
     .filter(Boolean)
@@ -884,6 +905,9 @@ async function refreshDataForCurrentUser() {
   const requestId = ++authDataRequestId;
   isLoading = true;
   series = [];
+  remoteDataOffset = 0;
+  totalRemoteData = null;
+  hasMoreRemoteData = false;
   isRemoteDataWritable = false;
   syncAuthUi();
   render();
@@ -905,6 +929,10 @@ async function refreshDataForCurrentUser() {
 async function loadData() {
   if (!supabaseClient) {
     series = readLocalSeries(STORAGE_KEY);
+    remoteDataOffset = series.length;
+    totalRemoteData = series.length;
+    hasMoreRemoteData = false;
+    updateAvailableYearRange(series);
     return;
   }
 
@@ -912,19 +940,28 @@ async function loadData() {
   if (!userId) {
     series = [];
     isRemoteDataWritable = false;
+    remoteDataOffset = 0;
+    totalRemoteData = 0;
+    hasMoreRemoteData = false;
+    updateAvailableYearRange(series);
     return;
   }
 
-  const { data, error } = await supabaseClient
+  const { data, error, count } = await supabaseClient
     .from(SUPABASE_TABLE)
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(remoteDataOffset, remoteDataOffset + DATA_PAGE_SIZE - 1);
 
   if (error) {
     console.error(error);
     isRemoteDataWritable = false;
     series = readLocalSeries(getUserSnapshotKey());
+    remoteDataOffset = series.length;
+    totalRemoteData = series.length;
+    hasMoreRemoteData = false;
+    updateAvailableYearRange(series);
     syncAuthUi();
     showToast(
       series.length
@@ -935,10 +972,31 @@ async function loadData() {
     return;
   }
 
-  series = (data || []).map(normalizeSeriesItem).filter(Boolean);
+  const page = (data || []).map(normalizeSeriesItem).filter(Boolean);
+  series = remoteDataOffset === 0 ? page : [...series, ...page];
+  remoteDataOffset += page.length;
+  totalRemoteData = count ?? series.length;
+  hasMoreRemoteData = remoteDataOffset < totalRemoteData || (count === null && page.length === DATA_PAGE_SIZE);
+  updateAvailableYearRange(series);
   isRemoteDataWritable = true;
   saveRemoteSnapshot(series);
   syncAuthUi();
+}
+
+async function loadMoreData() {
+  if (isLoadingMore || !hasMoreRemoteData || !supabaseClient || !currentUser) return;
+  isLoadingMore = true;
+  render();
+  try {
+    await loadData();
+    syncPlatformOptionsFromSavedItems();
+  } catch (error) {
+    console.error(error);
+    showToast('Não foi possível carregar mais títulos.', 'error');
+  } finally {
+    isLoadingMore = false;
+    render();
+  }
 }
 
 async function insertSeries(item) {
@@ -1112,7 +1170,7 @@ function render() {
   }
 
   const info = document.getElementById('resultsInfo');
-  const hasFilters = searchQuery || filters.contentType.length || filters.type.length || filters.genre.length || filters.platform.length;
+  const hasFilters = searchQuery || filters.contentType.length || filters.type.length || filters.genre.length || filters.platform.length || isYearFilterActive();
   if (isLoading) {
     info.innerHTML = '<span style="opacity:.6">Carregando...</span>';
   } else if (hasFilters) {
@@ -1128,6 +1186,7 @@ function render() {
 
   if (isLoading) {
     grid.innerHTML = renderSkeletons(12);
+    renderPaginationControls();
     return;
   }
 
@@ -1161,11 +1220,32 @@ function render() {
         <p>${t('noResultsDescription')}</p>
         <div class="empty-actions"><button class="btn btn-ghost" data-action="clear-all">${getLanguage() === 'en' ? 'Clear filters and search' : 'Limpar filtros e pesquisa'}</button></div>
       </div>`;
+    renderPaginationControls();
     return;
   }
 
   grid.innerHTML = filtered.map((item, index) => renderCard(item, index)).join('');
+  renderPaginationControls();
   requestAnimationFrame(applyBadgeOverflow);
+}
+
+function renderPaginationControls() {
+  const container = document.getElementById('paginationControls');
+  if (!container) return;
+  const total = totalRemoteData > series.length
+    ? totalRemoteData
+    : series.length + (hasMoreRemoteData ? DATA_PAGE_SIZE : 0);
+  if (!hasMoreRemoteData) {
+    container.hidden = true;
+    container.innerHTML = '';
+    return;
+  }
+  container.hidden = false;
+  container.innerHTML = `
+    <span class="pagination-count">${escHtml(t('loadedCount', { shown: series.length, total }))}</span>
+    <button class="btn btn-ghost pagination-more" type="button" data-action="load-more" ${isLoadingMore ? 'disabled aria-busy="true"' : ''}>
+      ${isLoadingMore ? escHtml(t('loadingMore')) : escHtml(t('loadMore'))}
+    </button>`;
 }
 
 // ── BADGE OVERFLOW: mostra +N só quando não cabe ──
@@ -1331,6 +1411,71 @@ function renderCard(s, idx) {
 }
 
 // ── FILTER / SEARCH ──
+function isYearFilterActive() {
+  return filters.year.min !== null
+    && filters.year.max !== null
+    && (filters.year.min > availableYearRange.min || filters.year.max < availableYearRange.max);
+}
+
+function updateAvailableYearRange(items = series) {
+  const years = items
+    .map(item => Number.parseInt(getSeriesYear(item), 10))
+    .filter(year => Number.isFinite(year) && year >= YEAR_MIN_DEFAULT && year <= YEAR_MAX_DEFAULT);
+  const nextRange = {
+    min: years.length ? Math.min(YEAR_MIN_DEFAULT, ...years) : YEAR_MIN_DEFAULT,
+    max: years.length ? Math.max(YEAR_MAX_DEFAULT, ...years) : YEAR_MAX_DEFAULT,
+  };
+  const wasInactive = !isYearFilterActive();
+  availableYearRange = nextRange;
+  if (filters.year.min === null || wasInactive) filters.year.min = nextRange.min;
+  if (filters.year.max === null || wasInactive) filters.year.max = nextRange.max;
+  filters.year.min = Math.max(nextRange.min, Math.min(filters.year.min, nextRange.max));
+  filters.year.max = Math.max(filters.year.min, Math.min(filters.year.max, nextRange.max));
+  updateYearRangeUI();
+}
+
+function updateYearRangeUI() {
+  const range = document.getElementById('yearRange');
+  const minInput = document.getElementById('yearMin');
+  const maxInput = document.getElementById('yearMax');
+  const minOutput = document.getElementById('yearMinValue');
+  const maxOutput = document.getElementById('yearMaxValue');
+  const fill = document.getElementById('yearRangeFill');
+  if (!range || !minInput || !maxInput) return;
+
+  const { min, max } = availableYearRange;
+  minInput.min = String(min);
+  minInput.max = String(max);
+  maxInput.min = String(min);
+  maxInput.max = String(max);
+  minInput.value = String(filters.year.min ?? min);
+  maxInput.value = String(filters.year.max ?? max);
+  if (minOutput) minOutput.textContent = minInput.value;
+  if (maxOutput) maxOutput.textContent = maxInput.value;
+  const span = Math.max(1, max - min);
+  const start = ((Number(minInput.value) - min) / span) * 100;
+  const end = ((Number(maxInput.value) - min) / span) * 100;
+  if (fill) {
+    fill.style.left = `${start}%`;
+    fill.style.right = `${100 - end}%`;
+  }
+  range.dataset.min = String(min);
+  range.dataset.max = String(max);
+}
+
+function handleYearRangeInput(event) {
+  const input = event.target;
+  const min = Number.parseInt(document.getElementById('yearMin').value, 10);
+  const max = Number.parseInt(document.getElementById('yearMax').value, 10);
+  if (input.id === 'yearMin' && min > max) document.getElementById('yearMax').value = String(min);
+  if (input.id === 'yearMax' && max < min) document.getElementById('yearMin').value = String(max);
+  filters.year.min = Number.parseInt(document.getElementById('yearMin').value, 10);
+  filters.year.max = Number.parseInt(document.getElementById('yearMax').value, 10);
+  updateYearRangeUI();
+  updateFiltersClearBtn();
+  render();
+}
+
 function getFiltered() {
   return series.filter(s => {
     const genres = Array.isArray(s.genres) ? s.genres : (s.genre ? [s.genre] : []);
@@ -1346,6 +1491,10 @@ function getFiltered() {
     if (filters.type.length && (!sHasOrigin || !filters.type.includes(s.type))) return false;
     if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
     if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
+    if (isYearFilterActive()) {
+      const year = Number.parseInt(getSeriesYear(s), 10);
+      if (!Number.isFinite(year) || year < filters.year.min || year > filters.year.max) return false;
+    }
     return true;
   });
 }
@@ -1355,29 +1504,12 @@ function toggleFilter(el) {
   const value = el.dataset.value;
   const arr = filters[filterKey];
 
-  // Conteúdo e origem são filtros de seleção única.
-  if (filterKey === 'type' || filterKey === 'contentType') {
-    if (arr.includes(value)) {
-      filters[filterKey] = [];
-      el.classList.remove('active');
-      el.setAttribute('aria-pressed', 'false');
-    } else {
-      filters[filterKey] = [value];
-      document.querySelectorAll(`[data-filter="${filterKey}"].active`).forEach(chip => {
-        chip.classList.remove('active');
-        chip.setAttribute('aria-pressed', 'false');
-      });
-      el.classList.add('active');
-      el.setAttribute('aria-pressed', 'true');
-    }
-  } else {
-    const idx = arr.indexOf(value);
-    if (idx === -1) arr.push(value);
-    else arr.splice(idx, 1);
-    const selected = arr.includes(value);
-    el.classList.toggle('active', selected);
-    el.setAttribute('aria-pressed', String(selected));
-  }
+  const idx = arr.indexOf(value);
+  if (idx === -1) arr.push(value);
+  else arr.splice(idx, 1);
+  const selected = arr.includes(value);
+  el.classList.toggle('active', selected);
+  el.setAttribute('aria-pressed', String(selected));
   updateFiltersClearBtn();
   render();
 }
@@ -1386,7 +1518,7 @@ function renderMobileActiveFilters() {
   const container = document.getElementById('mobileActiveFilters');
   if (!container) return;
 
-  const labels = { contentType: t('content'), type: t('origin'), genre: t('genre'), platform: t('platform') };
+  const labels = { contentType: t('content'), type: t('origin'), genre: t('genre'), platform: t('platform'), year: t('yearFilter') };
   const active = [];
   ['contentType', 'type', 'genre', 'platform'].forEach(filterKey => {
     filters[filterKey].forEach(value => active.push({
@@ -1395,6 +1527,13 @@ function renderMobileActiveFilters() {
       displayValue: filterKey === 'contentType' ? translateContentType(value) : translateValue(value)
     }));
   });
+  if (isYearFilterActive()) {
+    active.push({
+      filterKey: 'year',
+      value: `${filters.year.min}-${filters.year.max}`,
+      displayValue: `${filters.year.min}–${filters.year.max}`,
+    });
+  }
 
   container.classList.toggle('visible', active.length > 0);
   if (active.length === 0) {
@@ -1415,6 +1554,15 @@ function removeMobileFilter(button) {
   const value = button.dataset.value;
   if (!filters[filterKey]) return;
 
+  if (filterKey === 'year') {
+    filters.year.min = availableYearRange.min;
+    filters.year.max = availableYearRange.max;
+    updateYearRangeUI();
+    updateFiltersClearBtn();
+    render();
+    return;
+  }
+
   filters[filterKey] = filters[filterKey].filter(item => item !== value);
   document.querySelectorAll(`.chip[data-filter="${filterKey}"]`).forEach(chip => {
     if (chip.dataset.value === value) {
@@ -1427,11 +1575,18 @@ function removeMobileFilter(button) {
 }
 
 function clearFilters() {
-  filters = { contentType: [], type: [], genre: [], platform: [] };
+  filters = {
+    contentType: [],
+    type: [],
+    genre: [],
+    platform: [],
+    year: { min: availableYearRange.min, max: availableYearRange.max },
+  };
   document.querySelectorAll('.chip.active').forEach(c => {
     c.classList.remove('active');
     c.setAttribute('aria-pressed', 'false');
   });
+  updateYearRangeUI();
   updateFiltersClearBtn();
   render();
 }
@@ -1449,7 +1604,7 @@ function clearAll() {
 }
 
 function updateFiltersClearBtn() {
-  const total = filters.contentType.length + filters.type.length + filters.genre.length + filters.platform.length;
+  const total = filters.contentType.length + filters.type.length + filters.genre.length + filters.platform.length + (isYearFilterActive() ? 1 : 0);
   document.getElementById('filtersClear').classList.toggle('visible', total > 0);
   const badge = document.getElementById('filterCountBadge');
   badge.textContent = total;
@@ -2185,6 +2340,7 @@ document.addEventListener('click', event => {
     else if (action === 'clear-filters') clearFilters();
     else if (action === 'clear-all') clearAll();
     else if (action === 'toggle-sidebar' || action === 'toggle-filters') toggleFilters();
+    else if (action === 'load-more') loadMoreData();
     else if (action === 'draw-random') drawRandomSeries();
     else if (action === 'toggle-auth') toggleAuth();
     else if (action === 'sign-in-google') signInWithGoogle();
@@ -2368,6 +2524,9 @@ document.getElementById('languageSelect').addEventListener('change', event => {
   render();
 });
 
+document.getElementById('yearMin').addEventListener('input', handleYearRangeInput);
+document.getElementById('yearMax').addEventListener('input', handleYearRangeInput);
+
 // ── THEME TOGGLE ──
 function toggleTheme() {
   const html = document.documentElement;
@@ -2446,6 +2605,7 @@ function loadPosterFromUrl() {
 // ── INIT ──
 sortFilterOptions();
 applyLanguage();
+updateAvailableYearRange([]);
 loadSavedFiltersState();
 loadSavedTheme();
 

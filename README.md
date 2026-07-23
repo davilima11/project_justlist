@@ -48,6 +48,7 @@ src/styles.css                estilos e responsividade
 src/utils.js                  normalização, sanitização e utilitários puros
 test/utils.test.js             testes unitários
 supabase/multi-user-rls.sql   migração e políticas privadas por usuário
+supabase/year-filter.sql      coluna e índice opcionais para o filtro por ano
 .github/workflows/            build e deploy do GitHub Pages
 ```
 
@@ -136,6 +137,17 @@ Se o script disser que o usuário não existe, pare, crie a conta em **Authentic
 ### 8. Conferir os registros
 
 Abra **Table Editor → series** e confirme que a coluna `user_id` foi criada e que os registros antigos receberam o ID da conta dona.
+
+### 8.1. Ativar o filtro por ano
+
+No **Table Editor → series**, confirme se existe a coluna `year` do tipo `int4`/`integer`. Se ela não existir:
+
+1. Abra **SQL Editor → New query**.
+2. Cole o conteúdo de [`supabase/year-filter.sql`](supabase/year-filter.sql).
+3. Clique em **Run**.
+4. Volte à tabela `series` e confirme a coluna `year`.
+
+Essa alteração não muda as políticas RLS: o `user_id` continua separando as listas de cada conta.
 
 ### 9. Publicar a atualização
 
