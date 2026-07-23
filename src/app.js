@@ -2042,25 +2042,18 @@ function drawRandomSeries() {
     return;
   }
 
-  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-    const selected = chooseRandomSeries(candidates, lastRandomSeriesId);
-    lastRandomSeriesId = selected.id;
-    closeSidebar();
-    openDetail(selected.id, true);
-    showToast(`${translateContentType(getContentType(selected))} sorteado: ${selected.name}`, 'success');
-    return;
-  }
-
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   closeSidebar();
   clearRandomDrawTimers();
 
   document.getElementById('detailTitle').textContent = 'Sorteando...';
   document.getElementById('detailContent').innerHTML = `
     <div class="random-draw-body">
-      <div class="random-draw-icon">
+      <div class="random-draw-icon${prefersReducedMotion ? ' reduced-motion' : ''}">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="8" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8" cy="16" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/></svg>
       </div>
       <div class="random-draw-label">Escolhendo o próximo título</div>
+      <div class="random-draw-countdown" id="randomDrawCountdown" aria-live="assertive" aria-atomic="true">3</div>
       <div class="random-draw-name" id="randomDrawName" aria-live="polite">Preparando o sorteio...</div>
       <div class="random-draw-note">O sorteio considera a pesquisa e os filtros selecionados.</div>
     </div>`;
@@ -2069,9 +2062,16 @@ function drawRandomSeries() {
   openModal('detailModal');
 
   const totalSteps = Math.min(20, Math.max(12, candidates.length * 2));
+  const modal = document.getElementById('detailModal');
+
+  function finishDraw() {
+    const selected = chooseRandomSeries(candidates, lastRandomSeriesId);
+    lastRandomSeriesId = selected.id;
+    openDetail(selected.id, true);
+    showToast(`${translateContentType(getContentType(selected))} sorteado: ${selected.name}`, 'success');
+  }
 
   function runStep(step) {
-    const modal = document.getElementById('detailModal');
     const nameEl = document.getElementById('randomDrawName');
     if (!modal.classList.contains('open') || !nameEl) return;
 
@@ -2092,7 +2092,21 @@ function drawRandomSeries() {
     randomDrawTimers.push(setTimeout(() => runStep(step + 1), delay));
   }
 
-  runStep(0);
+  function runCountdown(secondsLeft) {
+    const countdown = document.getElementById('randomDrawCountdown');
+    if (!modal.classList.contains('open') || !countdown) return;
+    countdown.textContent = String(secondsLeft);
+    if (secondsLeft <= 0) {
+      randomDrawTimers.push(setTimeout(() => {
+        if (prefersReducedMotion) finishDraw();
+        else runStep(0);
+      }, 260));
+      return;
+    }
+    randomDrawTimers.push(setTimeout(() => runCountdown(secondsLeft - 1), 650));
+  }
+
+  runCountdown(3);
 }
 
 // ── DETAIL MODAL ──

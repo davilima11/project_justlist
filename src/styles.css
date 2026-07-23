@@ -1738,6 +1738,24 @@
       box-shadow: 0 12px 30px rgba(124,58,237,0.32);
       animation: randomDice 0.58s ease-in-out infinite alternate;
     }
+    .random-draw-icon.reduced-motion { animation: none; }
+
+    .random-draw-countdown {
+      width: 58px;
+      height: 58px;
+      margin: 18px auto 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid rgba(192,132,252,0.55);
+      border-radius: 50%;
+      color: #e9d5ff;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      background: rgba(124,58,237,0.12);
+    }
 
     .random-draw-label {
       font-size: 11px;
@@ -1786,6 +1804,10 @@
     @keyframes randomDice {
       from { transform: rotate(-8deg) scale(0.96); }
       to { transform: rotate(8deg) scale(1.06); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .random-draw-icon { animation: none; }
     }
 
     /* ── CONTENT TYPE CHOOSER ── */
