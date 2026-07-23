@@ -2352,7 +2352,7 @@
     .series-card:hover { transform: translateY(-5px); border-color: rgba(255,107,123,0.42); box-shadow: 0 20px 42px rgba(0,0,0,0.34), 0 0 0 1px rgba(229,29,56,0.08); }
     .card-poster-wrap { background: #0d0f14; }
     .card-poster { transition: opacity 0.4s ease, transform 0.55s cubic-bezier(.2,.7,.3,1.2); }
-    .card-body { height: 150px; padding: 13px 14px 16px; }
+    .card-body { height: 118px; padding: 13px 14px 12px; }
     .card-title {
       font-size: 14px;
       line-height: 1.35;
@@ -2360,7 +2360,7 @@
       margin-bottom: 5px;
       overflow-wrap: anywhere;
     }
-    .card-meta-groups { margin-top: 3px; }
+    .card-meta-groups { margin-top: 7px; }
     .badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; }
     .badge-genre { background: rgba(148,163,184,0.10); }
     .badge-platform { border: 1px solid rgba(255,255,255,0.06); }
@@ -2385,7 +2385,7 @@
       .content-toolbar > div:last-child .view-toggle { margin-right: auto; }
       .series-grid { gap: 14px; }
       .series-card { border-radius: 15px; }
-      .card-body { height: 142px; padding: 11px 11px 13px; }
+      .card-body { height: 112px; padding: 11px 11px 11px; }
       .card-title { font-size: 13px; max-height: calc(13px * 1.35 * 2); }
     }
 
