@@ -21,6 +21,7 @@ let isLoading = true;
 let isSaving = false;
 let isDeleting = false;
 let isSendingAuthLink = false;
+let isSigningInWithGoogle = false;
 let lastRandomSeriesId = null;
 let randomDrawTimers = [];
 let activeModalReturnFocus = null;
@@ -892,6 +893,7 @@ function canManage() {
 function syncAuthUi() {
   const authButton = document.getElementById('authButton');
   const authLabel = document.getElementById('authButtonLabel');
+  const googleAuthButton = document.getElementById('googleAuthButton');
   const addButton = document.getElementById('addContentButton');
   const fab = document.getElementById('fab');
   const managementEnabled = canManage();
@@ -901,6 +903,7 @@ function syncAuthUi() {
 
   if (!supabaseClient) {
     authButton.hidden = true;
+    if (googleAuthButton) googleAuthButton.hidden = true;
     return;
   }
 
@@ -912,6 +915,10 @@ function syncAuthUi() {
     ? `Sair da conta ${currentUser.email || ''}`.trim()
     : 'Entrar ou criar uma conta';
   authButton.setAttribute('aria-label', authButton.title);
+  if (googleAuthButton) {
+    googleAuthButton.disabled = !isAuthReady || isSigningInWithGoogle;
+    googleAuthButton.toggleAttribute('aria-busy', isSigningInWithGoogle);
+  }
 }
 
 function requireManagementAccess() {
@@ -962,6 +969,9 @@ function getAuthErrorMessage(error) {
   if (message.includes('email provider') || message.includes('provider is disabled')) {
     return 'O provedor Email está desativado no Supabase. Ative-o em Authentication → Providers.';
   }
+  if (message.includes('provider') && (message.includes('not enabled') || message.includes('unsupported'))) {
+    return 'O login com Google ainda não está habilitado no Supabase. Ative Google em Authentication → Providers e confira o Client ID e o Client Secret.';
+  }
   if (message.includes('rate limit') || message.includes('too many')) {
     return 'O limite de envio de e-mails do Supabase foi atingido. Aguarde alguns minutos e tente novamente.';
   }
@@ -1011,6 +1021,38 @@ async function sendMagicLink() {
     submitButton.disabled = false;
     submitButton.removeAttribute('aria-busy');
     submitLabel.textContent = 'Enviar link de acesso';
+  }
+}
+
+async function signInWithGoogle() {
+  if (!supabaseClient || !isAuthReady || isSigningInWithGoogle) return;
+
+  const googleButton = document.getElementById('googleAuthButton');
+  const googleLabel = document.getElementById('googleAuthLabel');
+  const emailButton = document.getElementById('authSubmitButton');
+  if (!googleButton || !googleLabel || !emailButton) return;
+
+  isSigningInWithGoogle = true;
+  googleButton.disabled = true;
+  googleButton.setAttribute('aria-busy', 'true');
+  emailButton.disabled = true;
+  googleLabel.textContent = 'Abrindo o Google…';
+
+  try {
+    const redirectUrl = new URL('./', location.href).href;
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectUrl },
+    });
+    if (error) throw error;
+  } catch (error) {
+    console.error(error);
+    showToast(getAuthErrorMessage(error), 'error');
+    isSigningInWithGoogle = false;
+    googleButton.disabled = false;
+    googleButton.removeAttribute('aria-busy');
+    emailButton.disabled = false;
+    googleLabel.textContent = 'Continuar com Google';
   }
 }
 
@@ -2369,6 +2411,7 @@ document.addEventListener('click', event => {
     else if (action === 'toggle-sidebar') toggleSidebar();
     else if (action === 'draw-random') drawRandomSeries();
     else if (action === 'toggle-auth') toggleAuth();
+    else if (action === 'sign-in-google') signInWithGoogle();
     else if (action === 'open-content-chooser') openContentTypeChooser();
     else if (action === 'close-modal') closeModal(actionTarget.dataset.modalId);
     else if (action === 'load-poster-url') loadPosterFromUrl();

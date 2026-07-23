@@ -66,7 +66,22 @@ Use o projeto Supabase já configurado no `src/app.js`. Não troque a URL ou a c
 3. Mantenha o login por link mágico habilitado.
 4. Permita novos cadastros, pois cada visitante poderá criar a própria conta pelo e-mail.
 
-### 3. Configurar as URLs
+### 3. Ativar login com Google (opcional)
+
+O botão **Continuar com Google** já está disponível no modal de login. Para ativá-lo:
+
+1. No [Google Cloud Console](https://console.cloud.google.com/), selecione o mesmo projeto usado pelo JustList.
+2. Abra **Google Auth Platform → Branding** e configure o nome do app e o email de suporte.
+3. Em **Audience**, escolha **External** e adicione seu email em **Test users** enquanto o app estiver em teste.
+4. Em **Clients**, crie um cliente **Web application**.
+5. Em **Authorized JavaScript origins**, adicione `https://davilima11.github.io`.
+6. Em **Authorized redirect URIs**, cole o Callback URL mostrado em **Supabase → Authentication → Providers → Google**. Ele tem o formato `https://SEU_PROJETO.supabase.co/auth/v1/callback`.
+7. Copie o **Client ID** e o **Client Secret** gerados pelo Google.
+8. No Supabase, ative **Authentication → Providers → Google**, cole os dois valores e salve.
+
+O endereço de retorno do Google deve ser o Callback URL do Supabase, não a URL do GitHub Pages. Se o site também for acessado por um domínio próprio, adicione a origem desse domínio nas origens JavaScript autorizadas.
+
+### 4. Configurar as URLs
 
 Em **Authentication → URL Configuration**:
 
@@ -83,13 +98,13 @@ https://davilima11.github.io/project_justlist/
 http://localhost:5173/
 ```
 
-### 4. Escolher a conta dona dos registros antigos
+### 5. Escolher a conta dona dos registros antigos
 
 Antes de executar o SQL, abra **Authentication → Users** e crie ou confirme a conta que ficará com os registros antigos da lista original.
 
 Anote o e-mail exatamente como aparece no Supabase.
 
-### 5. Preparar a migração RLS
+### 6. Preparar a migração RLS
 
 Abra [`supabase/multi-user-rls.sql`](supabase/multi-user-rls.sql) e substitua:
 
@@ -99,7 +114,7 @@ SEU_EMAIL@EXEMPLO.COM
 
 pelo e-mail real da conta dona dos registros antigos.
 
-### 6. Executar a migração
+### 7. Executar a migração
 
 1. No Supabase, abra **SQL Editor**.
 2. Clique em **New query**.
@@ -118,11 +133,11 @@ O script:
 
 Se o script disser que o usuário não existe, pare, crie a conta em **Authentication → Users**, confira o e-mail no arquivo e execute novamente.
 
-### 7. Conferir os registros
+### 8. Conferir os registros
 
 Abra **Table Editor → series** e confirme que a coluna `user_id` foi criada e que os registros antigos receberam o ID da conta dona.
 
-### 8. Publicar a atualização
+### 9. Publicar a atualização
 
 Depois de aplicar o SQL:
 
@@ -136,8 +151,8 @@ O workflow publica o diretório `dist/`, que é o build correto do Vite.
 
 1. A pessoa abre o site.
 2. Clica em **Entrar**.
-3. Informa o próprio e-mail.
-4. Abre o link mágico recebido.
+3. Escolhe **Continuar com Google** ou informa o próprio e-mail.
+4. Se escolher email, abre o link mágico recebido.
 5. O Supabase cria ou recupera a conta.
 6. O site consulta apenas as linhas cujo `user_id` pertence àquela conta.
 7. Ao adicionar um título, o site grava automaticamente o `user_id` do usuário atual.

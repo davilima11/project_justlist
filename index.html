@@ -229,7 +229,12 @@
       </button>
     </div>
     <div class="modal-body auth-modal-body">
-      <p class="auth-description" id="authModalDescription">Informe seu e-mail. Você receberá um link de acesso e terá uma lista particular, sem precisar de senha.</p>
+      <p class="auth-description" id="authModalDescription">Entre com sua conta Google ou informe seu e-mail para receber um link de acesso. Sua lista permanece particular.</p>
+      <button class="btn btn-google" id="googleAuthButton" data-action="sign-in-google" type="button" disabled aria-busy="true">
+        <span class="google-mark" aria-hidden="true">G</span>
+        <span id="googleAuthLabel">Continuar com Google</span>
+      </button>
+      <div class="auth-divider" aria-hidden="true"><span>ou entre com seu e-mail</span></div>
       <div class="form-group">
         <label class="form-label" for="authEmail">E-mail</label>
         <input class="form-input" id="authEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254" placeholder="voce@exemplo.com" autofocus />
