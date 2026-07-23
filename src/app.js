@@ -21,7 +21,16 @@ let series = [];
 const YEAR_MIN_DEFAULT = 1900;
 const YEAR_MAX_DEFAULT = new Date().getFullYear();
 const DATA_PAGE_SIZE = 48;
-const REMOVED_PLATFORM_NAMES = new Set(['nexustoons', 'mubi', 'pluto tv', 'claro tv+']);
+const REMOVED_PLATFORM_NAMES = new Set(['nexustoons', 'mubi', 'pluto tv', 'claro tv+', 'amazon channel']);
+
+function normalizePlatformName(value) {
+  const original = String(value || '').trim();
+  const name = original.toLocaleLowerCase('pt-BR');
+  if (!name) return '';
+  if (name.includes('universal+')) return 'Universal+';
+  if (REMOVED_PLATFORM_NAMES.has(name) || name.includes('amazon channel')) return '';
+  return original;
+}
 
 let filters = { contentType: [], type: [], genre: [], platform: [], year: { min: null, max: null } };
 let searchQuery = '';
@@ -158,6 +167,8 @@ function mapTmdbProviderName(providerName) {
   const name = original.toLocaleLowerCase('pt-BR');
   if (!name) return '';
   if (REMOVED_PLATFORM_NAMES.has(name)) return '';
+  if (name.includes('universal+')) return 'Universal+';
+  if (name.includes('amazon channel')) return '';
 
   if (name.includes('netflix')) return 'Netflix';
   if (name.includes('amazon prime video') || name === 'prime video') return 'Prime Video';
@@ -208,9 +219,8 @@ function ensureGenreOption(genre) {
 }
 
 function ensurePlatformOption(platform) {
-  const value = String(platform || '').trim();
+  const value = normalizePlatformName(platform);
   if (!value) return;
-  if (REMOVED_PLATFORM_NAMES.has(value.toLocaleLowerCase('pt-BR'))) return;
 
   const formContainer = document.getElementById('platformChips');
   if (formContainer && !Array.from(formContainer.querySelectorAll('.platform-chip')).some(chip => chip.dataset.value === value)) {
@@ -320,7 +330,7 @@ function getSeriesPlatforms(item) {
   if (!item) return [];
 
   const normalizePlatforms = values => {
-    const cleaned = values.map(String).map(value => value.trim()).filter(Boolean);
+    const cleaned = values.map(normalizePlatformName).filter(Boolean);
     return [...new Set(cleaned)];
   };
 
@@ -351,7 +361,7 @@ function getSeriesPlatforms(item) {
 }
 
 function serializePlatforms(platforms) {
-  return JSON.stringify([...new Set(platforms.map(String).map(value => value.trim()).filter(Boolean))]);
+  return JSON.stringify([...new Set(platforms.map(normalizePlatformName).filter(Boolean))]);
 }
 
 function normalizeSeriesItem(item) {
