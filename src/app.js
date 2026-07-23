@@ -879,7 +879,7 @@ const supabaseClient = (
 ) ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       detectSessionInUrl: true,
-      persistSession: false,
+      persistSession: true,
     },
   }) : null;
 

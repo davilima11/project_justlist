@@ -62,7 +62,7 @@ A chave `anon` do Supabase aparece no navegador por definição. A proteção re
 
 O script mantém leitura pública e bloqueia `insert`, `update` e `delete` para visitantes anônimos ou outras contas. Ele também remove políticas anteriores da tabela `series`; revise o arquivo antes de aplicá-lo se essa tabela for compartilhada com outro sistema.
 
-Por segurança, a sessão administrativa fica apenas na memória e termina ao recarregar a página. Essa escolha evita gravar o token no `localStorage` da origem compartilhada `davilima11.github.io`; para manter sessões persistentes com isolamento adequado, publique o site em um domínio próprio dedicado.
+O login fica persistido no navegador e continua ativo após recarregar a página, até o usuário sair ou a sessão expirar. Como o GitHub Pages usa a origem compartilhada `davilima11.github.io`, publique o site em um domínio próprio dedicado quando possível para isolar melhor o armazenamento da sessão.
 
 ## GitHub Pages
 
