@@ -2186,7 +2186,7 @@
     /* ── MODERN VISUAL SYSTEM ── */
     :root {
       --nav-height: 68px;
-      --bg: #08090d;
+      --bg: #000000;
       --bg-card: #12151d;
       --bg-card-hover: #1a1f2b;
       --bg-modal: #11141c;
@@ -2231,19 +2231,8 @@
     }
 
     html { background: var(--bg); }
-    body {
-      background:
-        radial-gradient(circle at 8% -12%, rgba(229,29,56,0.16), transparent 32rem),
-        radial-gradient(circle at 92% 8%, rgba(122,60,255,0.10), transparent 28rem),
-        var(--bg);
-      color: var(--text);
-    }
-    [data-theme="light"] body {
-      background:
-        radial-gradient(circle at 8% -12%, rgba(229,29,56,0.08), transparent 30rem),
-        radial-gradient(circle at 92% 8%, rgba(122,60,255,0.06), transparent 26rem),
-        var(--bg);
-    }
+    body,
+    [data-theme="light"] body { background: var(--bg); color: var(--text); }
     ::selection { background: rgba(229,29,56,0.32); color: #fff; }
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
