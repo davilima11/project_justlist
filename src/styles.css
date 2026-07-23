@@ -2194,7 +2194,7 @@
       --bg-input: rgba(255,255,255,0.055);
       --bg-filter: rgba(255,255,255,0.055);
       --bg-sidebar: rgba(10,12,17,0.82);
-      --border: rgba(255,255,255,0.10);
+      --border: #1a0000;
       --border-focus: #ff3c52;
       --text: #f7f8fb;
       --text-muted: #b7bdca;
@@ -2218,7 +2218,7 @@
       --bg-input: rgba(15,23,42,0.045);
       --bg-filter: rgba(15,23,42,0.05);
       --bg-sidebar: rgba(248,250,253,0.88);
-      --border: rgba(15,23,42,0.11);
+      --border: #1a0000;
       --text: #161a23;
       --text-muted: #4c5668;
       --text-dim: #737e90;
