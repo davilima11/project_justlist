@@ -191,15 +191,6 @@ O workflow publica `dist/` após cada push na branch `main`. Em **Settings → P
 
 ## Integrações e chaves públicas
 
-As chamadas ao TMDB são repassadas por uma Edge Function do Supabase
-(`supabase/functions/tmdb-proxy/`), que injeta a `TMDB_API_KEY` no servidor. A
-chave nunca fica exposta no bundle do navegador. A URL da função está em
-`src/app.js` (constante `TMDB_PROXY_URL`) e pode ser sobrescrita via
-`VITE_TMDB_PROXY_URL` em `.env.local`.
+As chamadas ao TMDB são feitas diretamente no navegador, então a chave da API também é pública no bundle. Para esconder essa credencial ou aplicar limites próprios, mova a chamada para uma função serverless/proxy.
 
-Para configurar o proxy, veja
-[`supabase/functions/tmdb-proxy/README.md`](supabase/functions/tmdb-proxy/README.md).
-URLs de pôster continuam sendo carregadas diretamente do `image.tmdb.org`; somente
-as chamadas à API (`/search`, `/tv/{id}`, `/movie/{id}`, `/watch/providers`) passam
-pelo proxy. Conteúdo dinâmico é escapado antes de entrar no HTML e a página aplica
-uma Content Security Policy restritiva.
+URLs de pôster são aceitas somente via HTTPS; conteúdo dinâmico é escapado antes de entrar no HTML e a página aplica uma Content Security Policy restritiva.
