@@ -1,6 +1,16 @@
 export const LANGUAGE_STORAGE_KEY = 'justlist_language';
 export const DEFAULT_LANGUAGE = 'pt-BR';
-export const SUPPORTED_LANGUAGES = ['pt-BR', 'en'];
+export const LANGUAGE_OPTIONS = [
+  { value: 'en-US', name: 'English', region: 'en-US', short: 'EN' },
+  { value: 'es-ES', name: 'Español', region: 'es-ES', short: 'ES' },
+  { value: 'fr-FR', name: 'Français', region: 'fr-FR', short: 'FR' },
+  { value: 'it-IT', name: 'Italiano', region: 'it-IT', short: 'IT' },
+  { value: 'nl-NL', name: 'Nederlands', region: 'nl-NL', short: 'NL' },
+  { value: 'pt-PT', name: 'Português', region: 'pt-PT', short: 'PT' },
+  { value: 'pt-BR', name: 'Português', region: 'pt-BR', short: 'BR' },
+  { value: 'ro-RO', name: 'Română', region: 'ro-RO', short: 'RO' },
+];
+export const SUPPORTED_LANGUAGES = LANGUAGE_OPTIONS.map(option => option.value);
 
 const messages = {
   'pt-BR': {
@@ -189,34 +199,50 @@ const contentTypeLabels = {
   en: { series: 'Series', movie: 'Movie', anime: 'Anime' },
 };
 
+function isPortugueseLanguage(language) {
+  return String(language || '').toLowerCase().startsWith('pt');
+}
+
+function getMessageSet(language) {
+  return messages[language] || (isPortugueseLanguage(language) ? messages['pt-BR'] : messages.en);
+}
+
+export function isEnglishLanguage(language = getLanguage()) {
+  return !isPortugueseLanguage(language);
+}
+
 export function getLanguage() {
   try {
     const saved = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    return SUPPORTED_LANGUAGES.includes(saved) ? saved : DEFAULT_LANGUAGE;
+    const normalized = saved === 'en' ? 'en-US' : saved;
+    return SUPPORTED_LANGUAGES.includes(normalized) ? normalized : DEFAULT_LANGUAGE;
   } catch {
     return DEFAULT_LANGUAGE;
   }
 }
 
 export function setLanguage(language) {
-  const next = SUPPORTED_LANGUAGES.includes(language) ? language : DEFAULT_LANGUAGE;
+  const normalized = language === 'en' ? 'en-US' : language;
+  const next = SUPPORTED_LANGUAGES.includes(normalized) ? normalized : DEFAULT_LANGUAGE;
   try { localStorage.setItem(LANGUAGE_STORAGE_KEY, next); } catch { /* storage can be unavailable */ }
   return next;
 }
 
 export function t(key, replacements = {}) {
-  const value = messages[getLanguage()][key] || messages[DEFAULT_LANGUAGE][key] || key;
+  const value = getMessageSet(getLanguage())[key] || messages[DEFAULT_LANGUAGE][key] || key;
   return String(value).replace(/\{(\w+)\}/g, (_, name) => replacements[name] ?? '');
 }
 
 export function translateValue(value, language = getLanguage()) {
   const key = String(value ?? '');
-  return valueTranslations[language]?.[key] || valueTranslations[DEFAULT_LANGUAGE]?.[key] || key;
+  const fallbackLanguage = isPortugueseLanguage(language) ? DEFAULT_LANGUAGE : 'en';
+  return valueTranslations[language]?.[key] || valueTranslations[fallbackLanguage]?.[key] || key;
 }
 
 export function translateContentType(value, language = getLanguage()) {
   const key = String(value ?? 'series');
-  return contentTypeLabels[language]?.[key] || contentTypeLabels[DEFAULT_LANGUAGE][key] || contentTypeLabels[DEFAULT_LANGUAGE].series;
+  const fallbackLanguage = isPortugueseLanguage(language) ? DEFAULT_LANGUAGE : 'en';
+  return contentTypeLabels[language]?.[key] || contentTypeLabels[fallbackLanguage]?.[key] || contentTypeLabels[DEFAULT_LANGUAGE].series;
 }
 
 export function applyLanguage() {
@@ -255,17 +281,24 @@ export function applyLanguage() {
   });
   document.querySelectorAll('#inputContentType option, #inputType option').forEach(option => {
     if (option.value) option.textContent = translateValue(option.value, language);
-    else option.textContent = language === 'en' ? 'Select an origin' : 'Selecione a origem';
+    else option.textContent = isEnglishLanguage(language) ? 'Select an origin' : 'Selecione a origem';
   });
 
   const selector = document.getElementById('languageSelect');
   if (selector) selector.value = language;
+  const languageOption = LANGUAGE_OPTIONS.find(option => option.value === language) || LANGUAGE_OPTIONS.find(option => option.value === DEFAULT_LANGUAGE);
+  const languageTriggerLabel = document.getElementById('languageTriggerLabel');
+  const languageMenu = document.getElementById('languageMenu');
+  if (languageTriggerLabel && languageOption) languageTriggerLabel.textContent = languageOption.short;
+  languageMenu?.querySelectorAll('[data-language-option]').forEach(option => {
+    option.setAttribute('aria-selected', String(option.dataset.languageOption === language));
+  });
   const meta = document.querySelector('meta[name="description"]');
-  if (meta) meta.content = language === 'en'
+  if (meta) meta.content = isEnglishLanguage(language)
     ? 'Organize series, movies, and anime in your personal list.'
     : 'Organize séries, filmes e animes em uma lista pessoal.';
   const title = document.querySelector('title');
-  if (title) title.textContent = language === 'en'
+  if (title) title.textContent = isEnglishLanguage(language)
     ? 'JustList — Series, Movies and Anime'
     : 'JustList — Séries, Filmes e Animes';
 }

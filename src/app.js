@@ -10,6 +10,7 @@ import {
 import {
   applyLanguage,
   getLanguage,
+  isEnglishLanguage,
   setLanguage,
   t,
   translateContentType,
@@ -454,7 +455,7 @@ function updateContentTypeFormUI(contentType, editing = false) {
   if (isAnime && originSelect && !originSelect.value) originSelect.value = 'Japão';
 
   const typeLabel = translateContentType(normalized).toLowerCase();
-  const english = getLanguage() === 'en';
+  const english = isEnglishLanguage();
   document.getElementById('formModalTitle').textContent = `${editing ? (english ? 'Edit' : 'Editar') : (english ? 'Add' : 'Adicionar')} ${typeLabel}`;
   document.getElementById('inputNameLabel').textContent = isMovie
     ? (english ? 'Movie name' : 'Nome do filme')
@@ -469,7 +470,7 @@ function updateContentTypeFormUI(contentType, editing = false) {
   const platformHint = document.getElementById('platformFieldHint');
   if (platformLabel) platformLabel.textContent = t('platforms');
   if (platformMark) platformMark.style.display = '';
-  if (platformHint) platformHint.textContent = getLanguage() === 'en'
+  if (platformHint) platformHint.textContent = isEnglishLanguage()
     ? 'Select one or more platforms. When importing from TMDB, availability in Brazil is marked automatically.'
     : 'Selecione uma ou mais plataformas. Ao importar do TMDB, a disponibilidade no Brasil será marcada automaticamente.';
   setTmdbPlatformStatus('');
@@ -1167,7 +1168,7 @@ function render() {
   if (randomBtn) {
     randomBtn.disabled = isLoading;
     randomBtn.title = isLoading
-      ? (getLanguage() === 'en' ? 'Wait for the list to load' : 'Aguarde o carregamento da lista')
+      ? (isEnglishLanguage() ? 'Wait for the list to load' : 'Aguarde o carregamento da lista')
       : filtered.length > 0
         ? t('sortHint', { count: filtered.length, label: filtered.length === 1 ? t('title') : t('titles') })
         : t('noTitlesAvailable');
@@ -1186,7 +1187,7 @@ function render() {
   if (isLoading) {
     info.innerHTML = '<span style="opacity:.6">Carregando...</span>';
   } else if (hasFilters) {
-    info.innerHTML = `${t('resultsShowing')} <strong>${filtered.length}</strong> ${getLanguage() === 'en' ? 'of' : 'de'} <strong>${series.length}</strong> ${t('titles')}`;
+    info.innerHTML = `${t('resultsShowing')} <strong>${filtered.length}</strong> ${isEnglishLanguage() ? 'of' : 'de'} <strong>${series.length}</strong> ${t('titles')}`;
   } else {
     info.innerHTML = series.length > 0
       ? `<strong>${series.length}</strong> ${t('titles')} ${series.length === 1 ? t('registered') : t('registeredPlural')}`
@@ -1219,7 +1220,7 @@ function render() {
             ${emptyActionLabel}
           </button>
         </div>
-        ${currentUser ? `<div class="kbd-hint">${getLanguage() === 'en' ? 'Tip: press' : 'Dica: pressione'} <span class="kbd">N</span> ${getLanguage() === 'en' ? 'to add quickly' : 'para adicionar rápido'}</div>` : ''}
+        ${currentUser ? `<div class="kbd-hint">${isEnglishLanguage() ? 'Tip: press' : 'Dica: pressione'} <span class="kbd">N</span> ${isEnglishLanguage() ? 'to add quickly' : 'para adicionar rápido'}</div>` : ''}
       </div>`;
     return;
   }
@@ -1230,7 +1231,7 @@ function render() {
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
         <h3>${t('noResults')}</h3>
         <p>${t('noResultsDescription')}</p>
-        <div class="empty-actions"><button class="btn btn-ghost" data-action="clear-all">${getLanguage() === 'en' ? 'Clear filters and search' : 'Limpar filtros e pesquisa'}</button></div>
+        <div class="empty-actions"><button class="btn btn-ghost" data-action="clear-all">${isEnglishLanguage() ? 'Clear filters and search' : 'Limpar filtros e pesquisa'}</button></div>
       </div>`;
     renderPaginationControls();
     return;
@@ -2358,6 +2359,24 @@ document.addEventListener('click', event => {
     return;
   }
 
+  const languageOption = event.target.closest('[data-language-option]');
+  if (languageOption) {
+    const selector = document.getElementById('languageSelect');
+    if (selector) {
+      selector.value = languageOption.dataset.languageOption;
+      selector.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    closeLanguageMenu();
+    return;
+  }
+
+  if (event.target.closest('#languageTrigger')) {
+    toggleLanguageMenu();
+    return;
+  }
+
+  if (!event.target.closest('.language-picker')) closeLanguageMenu();
+
   const actionTarget = event.target.closest('[data-action]');
   if (actionTarget) {
     const { action } = actionTarget.dataset;
@@ -2452,6 +2471,7 @@ document.addEventListener('error', event => {
 // ── KEYBOARD ──
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
+    if (closeLanguageMenu()) return;
     const openOverlay = document.querySelector('.modal-overlay.open');
     if (openOverlay) closeModal(openOverlay.id);
     else closeSidebar();
@@ -2543,6 +2563,7 @@ document.getElementById('searchInput').addEventListener('input', e => {
 });
 
 document.getElementById('languageSelect').addEventListener('change', event => {
+  closeLanguageMenu();
   setLanguage(event.target.value);
   sortFilterOptions();
   applyLanguage();
@@ -2577,6 +2598,24 @@ function updateThemeIcon() {
   toggle.setAttribute('aria-label', nextThemeLabel);
   toggle.title = nextThemeLabel;
   document.querySelector('meta[name="theme-color"]').content = isLight ? '#f5f5f5' : '#0d0d0d';
+}
+
+function closeLanguageMenu() {
+  const trigger = document.getElementById('languageTrigger');
+  const menu = document.getElementById('languageMenu');
+  if (!trigger || !menu || menu.hidden) return false;
+  menu.hidden = true;
+  trigger.setAttribute('aria-expanded', 'false');
+  return true;
+}
+
+function toggleLanguageMenu() {
+  const trigger = document.getElementById('languageTrigger');
+  const menu = document.getElementById('languageMenu');
+  if (!trigger || !menu) return;
+  const isOpen = !menu.hidden;
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
 }
 
 function loadSavedTheme() {
