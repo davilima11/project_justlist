@@ -950,6 +950,30 @@ async function initializeAuth() {
   });
 }
 
+function getAuthErrorMessage(error) {
+  const message = String(error?.message || error?.error_description || '').toLowerCase();
+
+  if (message.includes('redirect') || message.includes('url')) {
+    return 'O endereço do site não está autorizado no Supabase. Adicione a URL do GitHub Pages em Authentication → URL Configuration.';
+  }
+  if (message.includes('signups') || message.includes('sign up') || message.includes('signup')) {
+    return 'O cadastro por e-mail está desativado no Supabase. Ative novos cadastros em Authentication → Providers → Email.';
+  }
+  if (message.includes('email provider') || message.includes('provider is disabled')) {
+    return 'O provedor Email está desativado no Supabase. Ative-o em Authentication → Providers.';
+  }
+  if (message.includes('rate limit') || message.includes('too many')) {
+    return 'O limite de envio de e-mails do Supabase foi atingido. Aguarde alguns minutos e tente novamente.';
+  }
+  if (message.includes('smtp') || message.includes('error sending')) {
+    return 'O Supabase não conseguiu enviar o e-mail. Verifique o provedor Email e a configuração SMTP do projeto.';
+  }
+  if (message.includes('fetch') || message.includes('network')) {
+    return 'Não foi possível conectar ao Supabase. Verifique sua internet e tente novamente.';
+  }
+  return 'Não foi possível enviar o link. Verifique as configurações de Email e URL do Supabase.';
+}
+
 async function sendMagicLink() {
   if (!supabaseClient || isSendingAuthLink) return;
   const emailInput = document.getElementById('authEmail');
@@ -967,7 +991,7 @@ async function sendMagicLink() {
   submitLabel.textContent = 'Enviando…';
 
   try {
-    const redirectUrl = new URL(location.pathname, location.origin).href;
+    const redirectUrl = new URL('./', location.href).href;
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: {
@@ -981,7 +1005,7 @@ async function sendMagicLink() {
     showToast('Link de acesso enviado. Verifique seu e-mail.', 'success');
   } catch (error) {
     console.error(error);
-    showToast('Não foi possível enviar o link de acesso.', 'error');
+    showToast(getAuthErrorMessage(error), 'error');
   } finally {
     isSendingAuthLink = false;
     submitButton.disabled = false;
