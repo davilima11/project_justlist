@@ -2,13 +2,8 @@ export const LANGUAGE_STORAGE_KEY = 'justlist_language';
 export const DEFAULT_LANGUAGE = 'pt-BR';
 export const LANGUAGE_OPTIONS = [
   { value: 'en-US', name: 'English', region: 'en-US', short: 'EN' },
-  { value: 'es-ES', name: 'Español', region: 'es-ES', short: 'ES' },
-  { value: 'fr-FR', name: 'Français', region: 'fr-FR', short: 'FR' },
-  { value: 'it-IT', name: 'Italiano', region: 'it-IT', short: 'IT' },
-  { value: 'nl-NL', name: 'Nederlands', region: 'nl-NL', short: 'NL' },
   { value: 'pt-PT', name: 'Português', region: 'pt-PT', short: 'PT' },
   { value: 'pt-BR', name: 'Português', region: 'pt-BR', short: 'BR' },
-  { value: 'ro-RO', name: 'Română', region: 'ro-RO', short: 'RO' },
 ];
 export const SUPPORTED_LANGUAGES = LANGUAGE_OPTIONS.map(option => option.value);
 
