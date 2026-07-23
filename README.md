@@ -49,6 +49,7 @@ src/utils.js                  normalização, sanitização e utilitários puros
 test/utils.test.js             testes unitários
 supabase/multi-user-rls.sql   migração e políticas privadas por usuário
 supabase/year-filter.sql      coluna e índice opcionais para o filtro por ano
+supabase/remove-unused-series-columns.sql  limpeza opcional de colunas antigas
 .github/workflows/            build e deploy do GitHub Pages
 ```
 
@@ -148,6 +149,15 @@ No **Table Editor → series**, confirme se existe a coluna `year` do tipo `int4
 4. Volte à tabela `series` e confirme a coluna `year`.
 
 Essa alteração não muda as políticas RLS: o `user_id` continua separando as listas de cada conta.
+
+### 8.2. Remover colunas antigas não utilizadas
+
+O site utiliza apenas `id`, `name`, `type`, `genres`, `platform`, `synopsis`, `poster`, `created_at`,
+`content_type`, `year` e `user_id`. As colunas `tmdb_id`, `author`, `chapters`, `current_chapter`,
+`reading_status` e `publication_status` não são usadas.
+
+Antes de remover qualquer coluna, faça um backup da tabela `public.series`. Depois, execute o conteúdo de
+[`supabase/remove-unused-series-columns.sql`](supabase/remove-unused-series-columns.sql) no **SQL Editor**.
 
 ### 9. Publicar a atualização
 

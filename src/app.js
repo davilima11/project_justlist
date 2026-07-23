@@ -123,7 +123,7 @@ function getSeriesYear(s) {
   return '';
 }
 
-let pendingTmdb = null; // {tmdb_id, year, content_type} para anexar ao salvar
+let pendingTmdb = null; // {year} para preservar o ano importado do TMDB
 let tmdbSearchTimer = null;
 let tmdbLastQuery = '';
 let searchRenderTimer = null;
@@ -645,11 +645,9 @@ async function selectTmdbResult(tmdbId, contentType = getFormContentType()) {
 
     const date = normalizedType === 'movie' ? d.release_date : d.first_air_date;
     const importedYear = Number.parseInt((date || '').slice(0, 4), 10);
-    pendingTmdb = {
-      tmdb_id: d.id,
-      year: Number.isInteger(importedYear) ? importedYear : null,
-      content_type: normalizedType
-    };
+      pendingTmdb = {
+        year: Number.isInteger(importedYear) ? importedYear : null
+      };
 
     let importedPlatforms = [];
     if (providersResult.status === 'fulfilled') {
