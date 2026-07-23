@@ -2353,7 +2353,14 @@
     .card-poster-wrap { background: #0d0f14; }
     .card-poster { transition: opacity 0.4s ease, transform 0.55s cubic-bezier(.2,.7,.3,1.2); }
     .card-body { height: 150px; padding: 13px 14px 16px; }
-    .card-title { font-size: 14px; line-height: 1.35; max-height: calc(14px * 1.35 * 2); margin-bottom: 9px; }
+    .card-title {
+      font-size: 14px;
+      line-height: 1.35;
+      max-height: calc(14px * 1.35 * 2);
+      margin-bottom: 5px;
+      overflow-wrap: anywhere;
+    }
+    .card-meta-groups { margin-top: 3px; }
     .badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; }
     .badge-genre { background: rgba(148,163,184,0.10); }
     .badge-platform { border: 1px solid rgba(255,255,255,0.06); }
