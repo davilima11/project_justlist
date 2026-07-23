@@ -2185,7 +2185,8 @@
 
     /* ── MODERN VISUAL SYSTEM ── */
     :root {
-      --nav-height: 68px;
+      --nav-height: 60px;
+      --sidebar-width: 280px;
       --bg: #000000;
       --bg-card: #12151d;
       --bg-card-hover: #1a1f2b;
