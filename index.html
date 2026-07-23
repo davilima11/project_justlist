@@ -42,8 +42,8 @@
     <label class="language-picker" for="languageSelect">
       <span class="sr-only" data-i18n="language">Idioma</span>
       <select id="languageSelect" aria-label="Idioma" data-i18n-label="language">
-        <option value="pt-BR">Português</option>
-        <option value="en">English</option>
+        <option value="pt-BR">PT</option>
+        <option value="en">EN</option>
       </select>
     </label>
     <button class="theme-toggle" id="themeToggle" data-action="toggle-theme" aria-label="Ativar tema claro" title="Alternar tema">
@@ -87,9 +87,23 @@
         <button type="button" class="chip" data-filter="type" data-value="China" aria-pressed="false">China</button>
         <button type="button" class="chip" data-filter="type" data-value="Coreia" aria-pressed="false">Coreia</button>
         <button type="button" class="chip" data-filter="type" data-value="EUA" aria-pressed="false">EUA</button>
+        <button type="button" class="chip" data-filter="type" data-value="Espanha" aria-pressed="false">Espanha</button>
         <button type="button" class="chip" data-filter="type" data-value="Japão" aria-pressed="false">Japão</button>
         <button type="button" class="chip" data-filter="type" data-value="Outros" aria-pressed="false">Outros</button>
         <button type="button" class="chip" data-filter="type" data-value="Turquia" aria-pressed="false">Turquia</button>
+      </div>
+    </div>
+
+    <div class="filter-group year-filter-group">
+      <div class="filter-group-label" data-i18n="yearFilter">Ano de lançamento</div>
+      <div class="year-range" id="yearRange" data-min="1900" data-max="2026">
+        <div class="year-range-values">
+          <output id="yearMinValue" for="yearMin">1900</output>
+          <output id="yearMaxValue" for="yearMax">2026</output>
+        </div>
+        <div class="year-range-track" aria-hidden="true"><span id="yearRangeFill"></span></div>
+        <input class="year-range-input year-range-min" id="yearMin" type="range" min="1900" max="2026" value="1900" step="1" aria-label="Ano inicial" data-i18n-label="yearStart" />
+        <input class="year-range-input year-range-max" id="yearMax" type="range" min="1900" max="2026" value="2026" step="1" aria-label="Ano final" data-i18n-label="yearEnd" />
       </div>
     </div>
 
@@ -123,17 +137,14 @@
       <div class="filter-group-label" data-i18n="platform">Plataforma</div>
       <div class="filter-chips" id="filterPlatform">
         <button type="button" class="chip" data-filter="platform" data-value="Apple TV+" aria-pressed="false">Apple TV+</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Claro tv+" aria-pressed="false">Claro tv+</button>
         <button type="button" class="chip" data-filter="platform" data-value="Crunchyroll" aria-pressed="false">Crunchyroll</button>
         <button type="button" class="chip" data-filter="platform" data-value="Disney+" aria-pressed="false">Disney+</button>
         <button type="button" class="chip" data-filter="platform" data-value="Globoplay" aria-pressed="false">Globoplay</button>
         <button type="button" class="chip" data-filter="platform" data-value="iQIYI" aria-pressed="false">iQIYI</button>
         <button type="button" class="chip" data-filter="platform" data-value="Looke" aria-pressed="false">Looke</button>
-        <button type="button" class="chip" data-filter="platform" data-value="MUBI" aria-pressed="false">MUBI</button>
         <button type="button" class="chip" data-filter="platform" data-value="Netflix" aria-pressed="false">Netflix</button>
         <button type="button" class="chip" data-filter="platform" data-value="Outros" aria-pressed="false">Outros</button>
         <button type="button" class="chip" data-filter="platform" data-value="Paramount+" aria-pressed="false">Paramount+</button>
-        <button type="button" class="chip" data-filter="platform" data-value="Pluto TV" aria-pressed="false">Pluto TV</button>
         <button type="button" class="chip" data-filter="platform" data-value="Prime Video" aria-pressed="false">Prime Video</button>
         <button type="button" class="chip" data-filter="platform" data-value="Telegram" aria-pressed="false">Telegram</button>
         <button type="button" class="chip" data-filter="platform" data-value="Viki" aria-pressed="false">Viki</button>
@@ -178,6 +189,7 @@
 
     <!-- SERIES GRID -->
     <div class="series-grid" id="seriesGrid"></div>
+    <div class="pagination-controls" id="paginationControls" hidden></div>
   </main>
 </div>
 
@@ -315,12 +327,13 @@
         <label class="form-label" for="inputType">Origem <span style="color:var(--accent)">*</span></label>
         <select class="form-select" id="inputType" required aria-required="true">
           <option value="">Selecione a origem</option>
-          <option value="Coreia">Coreia</option>
           <option value="China">China</option>
-          <option value="Turquia">Turquia</option>
-          <option value="Japão">Japão</option>
+          <option value="Coreia">Coreia</option>
           <option value="EUA">EUA</option>
+          <option value="Espanha">Espanha</option>
+          <option value="Japão">Japão</option>
           <option value="Outros">Outros</option>
+          <option value="Turquia">Turquia</option>
         </select>
       </div>
 
@@ -366,9 +379,6 @@
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Globoplay" aria-pressed="false">Globoplay</button>
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Paramount+" aria-pressed="false">Paramount+</button>
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Crunchyroll" aria-pressed="false">Crunchyroll</button>
-          <button type="button" class="platform-chip" data-media-kind="screen" data-value="Pluto TV" aria-pressed="false">Pluto TV</button>
-          <button type="button" class="platform-chip" data-media-kind="screen" data-value="MUBI" aria-pressed="false">MUBI</button>
-          <button type="button" class="platform-chip" data-media-kind="screen" data-value="Claro tv+" aria-pressed="false">Claro tv+</button>
           <button type="button" class="platform-chip" data-media-kind="screen" data-value="Looke" aria-pressed="false">Looke</button>
           <button type="button" class="platform-chip" data-media-kind="both" data-value="Outros" aria-pressed="false">Outros</button>
         </div>
