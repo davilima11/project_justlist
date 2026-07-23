@@ -1497,7 +1497,8 @@ function getFiltered() {
     // O filtro de origem se aplica a todos os conteúdos, exceto filmes.
     const sHasOrigin = getContentType(s) !== 'movie';
     if (filters.type.length && (!sHasOrigin || !filters.type.includes(s.type))) return false;
-    if (filters.genre.length && !filters.genre.some(g => genres.includes(g))) return false;
+    // Gêneros combinados usam a lógica "E": o item precisa conter todos os gêneros selecionados.
+    if (filters.genre.length && !filters.genre.every(g => genres.includes(g))) return false;
     if (filters.platform.length && !filters.platform.some(platform => platforms.includes(platform))) return false;
     if (isYearFilterActive()) {
       const year = Number.parseInt(getSeriesYear(s), 10);
