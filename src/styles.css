@@ -103,10 +103,17 @@
     ::-webkit-scrollbar-thumb:hover { background: #444; }
 
     /* ── HEADER / NAV ── */
-    nav {
+    /* O cabeçalho inteiro precisa ser sticky. O nav sozinho ficava preso ao
+       limite de 60px do header e desaparecia ao rolar, deixando um vão acima
+       do painel de filtros (que começa abaixo do cabeçalho). */
+    .site-header {
       position: sticky;
       top: 0;
       z-index: 100;
+    }
+
+    nav {
+      position: relative;
       background: var(--nav-bg);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
