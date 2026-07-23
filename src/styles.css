@@ -2373,6 +2373,8 @@
       .sidebar-overlay { top: var(--nav-height); }
       .content { padding: 18px 12px 92px; }
       .content-toolbar { padding: 10px; border-radius: 14px; }
+      .content-toolbar > div:last-child { width: 100%; justify-content: flex-start; }
+      .content-toolbar > div:last-child .view-toggle { margin-right: auto; }
       .series-grid { gap: 14px; }
       .series-card { border-radius: 15px; }
       .card-body { height: 142px; padding: 11px 11px 13px; }
@@ -2383,5 +2385,5 @@
       .nav-logo-mark { width: 34px; height: 34px; flex-basis: 34px; }
       .content-toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
       .content-toolbar > div { justify-content: space-between; }
-      .content-toolbar > div:last-child { justify-content: flex-end; }
+      .content-toolbar > div:last-child { justify-content: flex-start; }
     }
