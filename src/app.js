@@ -30,6 +30,7 @@ let formSessionId = 0;
 let currentUser = null;
 let isAuthReady = false;
 let isRemoteDataWritable = false;
+let authDataRequestId = 0;
 let pendingDeleteId = null;
 
 const STORAGE_KEY = 'justlist_series_v1';
@@ -405,8 +406,9 @@ function writeLocalSeries(key, items) {
 }
 
 function saveRemoteSnapshot(items) {
+  if (!currentUser?.id) return;
   try {
-    writeLocalSeries(SNAPSHOT_KEY, items);
+    writeLocalSeries(`${SNAPSHOT_KEY}:${currentUser.id}`, items);
   } catch (error) {
     console.warn('Não foi possível salvar uma cópia offline da lista:', error);
   }
@@ -908,17 +910,17 @@ function syncAuthUi() {
   authLabel.textContent = currentUser ? 'Sair' : 'Entrar';
   authButton.title = currentUser
     ? `Sair da conta ${currentUser.email || ''}`.trim()
-    : 'Entrar como proprietário';
+    : 'Entrar ou criar uma conta';
   authButton.setAttribute('aria-label', authButton.title);
 }
 
 function requireManagementAccess() {
   if (canManage()) return true;
   if (currentUser && !isRemoteDataWritable) {
-    showToast('A edição está indisponível enquanto a lista remota não estiver sincronizada.', 'error');
+    showToast('A sua lista ainda não terminou de sincronizar.', 'error');
     return false;
   }
-  showToast('Entre como proprietário para alterar a lista.', 'info');
+  showToast('Entre ou crie uma conta para alterar a sua lista.', 'info');
   openModal('authModal');
   return false;
 }
@@ -936,15 +938,19 @@ async function initializeAuth() {
   isAuthReady = true;
   syncAuthUi();
 
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user || null;
     isAuthReady = true;
     syncAuthUi();
-    render();
+    if (event === 'INITIAL_SESSION') {
+      render();
+      return;
+    }
+    void refreshDataForCurrentUser();
   });
 }
 
-async function sendOwnerMagicLink() {
+async function sendMagicLink() {
   if (!supabaseClient || isSendingAuthLink) return;
   const emailInput = document.getElementById('authEmail');
   const email = emailInput.value.trim();
@@ -966,7 +972,7 @@ async function sendOwnerMagicLink() {
       email,
       options: {
         emailRedirectTo: redirectUrl,
-        shouldCreateUser: false,
+        shouldCreateUser: true,
       },
     });
     if (error) throw error;
@@ -1001,21 +1007,55 @@ async function toggleAuth() {
 }
 
 // ── STORAGE ──
+function getUserSnapshotKey(userId = currentUser?.id) {
+  return userId ? `${SNAPSHOT_KEY}:${userId}` : null;
+}
+
+async function refreshDataForCurrentUser() {
+  const requestId = ++authDataRequestId;
+  isLoading = true;
+  series = [];
+  isRemoteDataWritable = false;
+  syncAuthUi();
+  render();
+
+  try {
+    await loadData();
+    syncPlatformOptionsFromSavedItems();
+  } catch (error) {
+    console.error(error);
+    showToast('Não foi possível carregar a sua lista.', 'error');
+  } finally {
+    if (requestId !== authDataRequestId) return;
+    isLoading = false;
+    syncAuthUi();
+    render();
+  }
+}
+
 async function loadData() {
   if (!supabaseClient) {
     series = readLocalSeries(STORAGE_KEY);
     return;
   }
 
+  const userId = currentUser?.id;
+  if (!userId) {
+    series = [];
+    isRemoteDataWritable = false;
+    return;
+  }
+
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
     .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
   if (error) {
     console.error(error);
     isRemoteDataWritable = false;
-    series = readLocalSeries(SNAPSHOT_KEY, STORAGE_KEY);
+    series = readLocalSeries(getUserSnapshotKey());
     syncAuthUi();
     showToast(
       series.length
@@ -1038,9 +1078,12 @@ async function insertSeries(item) {
     return item;
   }
 
+  const userId = currentUser?.id;
+  if (!userId) throw new Error('É necessário estar autenticado para salvar.');
+
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
-    .insert(item)
+    .insert({ ...item, user_id: userId })
     .select()
     .single();
 
@@ -1056,10 +1099,14 @@ async function updateSeries(id, item) {
     return series.find(x => String(x.id) === String(id));
   }
 
+  const userId = currentUser?.id;
+  if (!userId) throw new Error('É necessário estar autenticado para atualizar.');
+
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
     .update(item)
     .eq('id', id)
+    .eq('user_id', userId)
     .select()
     .single();
 
@@ -1074,10 +1121,14 @@ async function removeSeriesFromDb(id) {
     return;
   }
 
+  const userId = currentUser?.id;
+  if (!userId) throw new Error('É necessário estar autenticado para excluir.');
+
   const { data, error } = await supabaseClient
     .from(SUPABASE_TABLE)
     .delete()
     .eq('id', id)
+    .eq('user_id', userId)
     .select('id')
     .maybeSingle();
 
@@ -1177,18 +1228,23 @@ function render() {
   }
 
   if (series.length === 0) {
+    const emptyTitle = currentUser ? 'Sua lista está vazia' : 'Entre para ver sua lista';
+    const emptyDescription = currentUser
+      ? 'Comece adicionando uma série, filme, anime, mangá ou manhwa. O TMDB e o AniList podem preencher os dados automaticamente.'
+      : 'Entre ou crie uma conta para acessar sua lista particular e adicionar seus títulos.';
+    const emptyActionLabel = currentUser ? 'Adicionar primeiro título' : 'Entrar ou criar conta';
     grid.innerHTML = `
       <div class="empty-state" style="grid-column:1/-1">
         <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 11h6"/></svg>
-        <h3>Sua lista está vazia</h3>
-        <p>Comece adicionando uma série, filme, anime, mangá ou manhwa. O TMDB e o AniList podem preencher os dados automaticamente.</p>
+        <h3>${emptyTitle}</h3>
+        <p>${emptyDescription}</p>
         <div class="empty-actions">
           <button class="btn btn-primary" data-action="open-content-chooser">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            Adicionar primeiro título
+            ${emptyActionLabel}
           </button>
         </div>
-        <div class="kbd-hint">Dica: pressione <span class="kbd">N</span> para adicionar rápido</div>
+        ${currentUser ? '<div class="kbd-hint">Dica: pressione <span class="kbd">N</span> para adicionar rápido</div>' : ''}
       </div>`;
     return;
   }
@@ -2356,7 +2412,7 @@ document.getElementById('seriesForm').addEventListener('submit', event => {
 
 document.getElementById('authForm').addEventListener('submit', event => {
   event.preventDefault();
-  sendOwnerMagicLink();
+  sendMagicLink();
 });
 
 document.getElementById('posterInput').addEventListener('change', handlePosterUpload);
